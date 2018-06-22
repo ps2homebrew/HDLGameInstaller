@@ -1,0 +1,30 @@
+Each partition has a 4MB attribute area, that I think comes immediately after the APA header */
+The start of the resource area contains:
+	1. system.cnf
+	2. icon.sys
+	3. list-view icon
+	4. deletion icon
+	5. KELF	(This is undocumented!)
+
+typedef struct PartAttributeAreaTable{
+	char magic[9];	/* "PS2ICON3D" */
+	unsigned char reserved[3];
+	int version;	/* Must be zero. */
+	struct{
+		int offset;
+		int size;
+	}FileEnt[5];
+
+	unsigned char reserved2[456];
+} t_PartAttrTab;
+
+*** ALL RESERVED/UNUSED AREAS IN THE ATTRIBUTE AREA MUST BE ZERO-FILLED!! ***
+The offset fields for each file descriptor is in bytes (In multiples of 512 bytes), relative to the start of the attribute area.
+The format of the icons is the same as the format of the icons used on regular Playstation 2 Memory Cards.
+
+The format of SYSTEM.CNF is exactly the same as the format of any SYSTEM.CNF files found on a SCE CD/DVD disc.
+A new field is added: HDDUNITPOWER. Setting HDDUNITPOWER to NIC causes the HDD to be powered-down after the program is launched, but the Network Adaptor will still be powered-up.
+	Setting HDDUNITPOWER to NICHDD keeps the Network Adaptor and HDD powered-up.
+
+(UNDOCUMENTED) Setting BOOT2 to PATINFO causes an embedded KELF to be launched when the program is selected.
+(UNDOCUMENTED) Setting BOOT2 to NOBOOT causes the partition to be marked as being unbootable. The message "This program cannot be started" will be displayed.

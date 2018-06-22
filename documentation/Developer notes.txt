@@ -1,0 +1,4 @@
+To compile this software, you need:
+1. An updated PS2SDK (https://github.com/ps2dev/ps2sdk).
+2. libpng and all its dependencies (zlib and libmath). If you can't compile libpng for use on a Windows development environment, you may need to do so in Linux before copying the compiled library over.
+3. gsKit, as well as FreeType and its dependencies.

@@ -1,0 +1,36 @@
+The PlayStation universally supports 8 languages:
+1. Japanese
+2. English
+3. French
+4. Spanish
+5. German
+6. Italian
+7. Dutch
+8. Portuguese
+
+These languages are also supported on certain models (localized fat PS2s and all slimlines), but aren't recognized by the System Configuration (SCF) library that Sony uses in games:
+1. Russian
+2. Korean
+3. Traditional Chinese.
+4. Simplified Chinese
+
+***At this point, only the basic 8 languages are supported.***
+
+Customizable files under the "lang" folder:
+	fonts.txt	-> Contains the filenames of the font to use for each language. One file on each line for each language.
+	labels_XX.txt	-> Contains labels. One label per line. This file should be saved in the UTF-8 encoding.
+	strings_XX.txt	-> Contains strings (messages). One string per line. This file should be saved in the UTF-8 encoding.
+	*.ttf		-> Font files. Only files specified in fonts.txt will be used. If your language needs characters not found in the English script, add a font file that can be loaded by FreeType and update the appropriate line within fonts.txt.
+
+	XX = a two-letter code representing each language. If the file cannot be loaded, the system will use its defaults (English-language resources).
+
+Language codes:
+	Language:	Code:	Line number (in fonts.txt):
+	Japanese	JA	1
+	English		EN	2
+	French		FR	3
+	Spanish		SP	4
+	German		GE	5
+	Italian		IT	6
+	Dutch		DU	7
+	Portuguese	PO	8
