@@ -11,9 +11,10 @@ EE_OBJS = main.o settings.o system.o io.o sjis.o graphics.o UI.o menu.o OSD.o pa
 #IOP modules
 EE_IOP_OBJS = IOMANX_irx.o FILEXIO_irx.o SIO2MAN_irx.o MCMAN_irx.o MCSERV_irx.o PADMAN_irx.o POWEROFF_irx.o DEV9_irx.o ATAD_irx.o HDD_irx.o PFS_irx.o HDLFS_irx.o SMAP_irx.o NETMAN_irx.o USBD_irx.o USBHDFSD_irx.o
 
-EE_INCS := -I$(PS2SDK)/ports/include -I$(PS2DEV)/gsKit/include -I./FreeType -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include
-EE_LDFLAGS := -L$(PS2SDK)/ports/lib -L$(PS2DEV)/gsKit/lib -L. -L$(PS2SDK)/ee/lib -Tlinkfile
-EE_LIBS = -lpatches -lgskit -ldmakit -lpng -lz -lpadx -lmc -lpoweroff -lfileXio -lcdvd -lhdd -lps2ip -lnetman -lmath3d -lm -lfreetype -lc -lkernel
+EE_INCS := -I$(PS2SDK)/ports/include -I$(PS2SDK)/ports/include/freetype2 -I$(PS2DEV)/gsKit/include -I./FreeType -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include
+EE_LDFLAGS := -L$(PS2SDK)/ports/lib -L$(PS2DEV)/gsKit/lib -L. -L$(PS2SDK)/ee/lib
+EE_LIBS = -lpatches -lgskit -ldmakit -lpng -lzlib -lpadx -lmc -lpoweroff -lfileXio -lcdvd -lhdd -lps2ip -lnetman -lmath3d -lm -lfreetype
+
 EE_GPVAL = -G9760
 EE_CFLAGS += -Os -mgpopt $(EE_GPVAL)
 

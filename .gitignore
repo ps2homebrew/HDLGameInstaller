@@ -1,0 +1,11 @@
+*.o
+*.elf
+*_irx.c
+
+BOOT_kelf.c
+ICON_ico.c
+SJIS2Unicode_bin.c
+SYSTEM_cnf.c
+background.c
+buttons.c
+devices.c
