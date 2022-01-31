@@ -34,23 +34,38 @@ static u8 IOThreadStack[0x600] __attribute__((aligned(16)));
 static int IOExecWriteNext(void)
 {
 	void *buffer;
-	const struct BuffDesc *bd;
-	int result;
+	const struct BuffDesc *bd, *bdNext;
+	unsigned short int nextReadPtr;
+	int result, toWrite, partitionsCleared, i;
 
 	result = 0;
-	while(PollSema(IOState.outBufSema) == IOState.outBufSema)
+	if(PollSema(IOState.outBufSema) == IOState.outBufSema)
 	{
 		buffer = (u8*)IOState.buffer + IOState.ReadPtr * (unsigned int)IOState.bufmax * 2048;
 		bd = &IOState.bd[IOState.ReadPtr];
+		toWrite = bd->length;
+
+		//Determine how much can be written at once, without wrapping around the ring buffer.
+		for(partitionsCleared = 1, nextReadPtr = IOState.ReadPtr + 1;
+			nextReadPtr < IOState.nbufs;
+			partitionsCleared++, nextReadPtr++) {
+
+			if(PollSema(IOState.outBufSema) != IOState.outBufSema)
+				break;
+
+			bdNext = &IOState.bd[nextReadPtr];
+			toWrite += bdNext->length;
+		}
 
 		do{
-			result = fileXioWrite(IOState.ioFD, buffer, bd->length);
+			result = fileXioWrite(IOState.ioFD, buffer, toWrite);
 		}while(result < 0 && result != -EIO);
 
 		if(result >= 0)
 		{	//Update state
-			IOState.ReadPtr = (IOState.ReadPtr + 1) % IOState.nbufs;
-			SignalSema(IOState.inBufSema);
+			IOState.ReadPtr = (IOState.ReadPtr + partitionsCleared) % IOState.nbufs;
+			for (i = 0; i < partitionsCleared; i++)
+				SignalSema(IOState.inBufSema);
 		}
 	}
 
@@ -60,35 +75,53 @@ static int IOExecWriteNext(void)
 static int IOExecReadNext(void)
 {
 	void *buffer;
-	struct BuffDesc *bd;
-	unsigned short int sectors;
-	unsigned int bytes;
-	int result;
+	struct BuffDesc *bd, *bdNext;
+	unsigned short int sectors, nextWritePtr;
+	unsigned int sectorsTotal;
+	int result, partitionsCleared, i;
 
 	result = 0;
-	while((IOState.remaining > 0) && (PollSema(IOState.inBufSema) == IOState.inBufSema))
+	while(IOState.remaining > 0)
 	{
-		sectors = IOState.remaining < IOState.bufmax ? IOState.remaining : IOState.bufmax;
-		bytes = (unsigned int)sectors * 2048;
+		if (PollSema(IOState.inBufSema) == IOState.inBufSema) {
+			sectors = IOState.remaining < IOState.bufmax ? IOState.remaining : IOState.bufmax;
+			sectorsTotal = sectors;
 
-		buffer = (u8*)IOState.buffer + IOState.WritePtr * (unsigned int)IOState.bufmax * 2048;
-		bd = &IOState.bd[IOState.WritePtr];
+			buffer = (u8*)IOState.buffer + IOState.WritePtr * (unsigned int)IOState.bufmax * 2048;
+			bd = &IOState.bd[IOState.WritePtr];
+			bd->length = sectors * 2048; //Indicate how many bytes will be in this partition.
+			partitionsCleared = 1;
 
-		//Read raw data
-		do
-		{
-			result = fileXioRead(IOState.ioFD, buffer, bytes);
-		}while(result < 0 && result != -EIO);
+			//Determine how much can be written at once, without wrapping around the ring buffer.
+			for(partitionsCleared = 1, nextWritePtr = IOState.WritePtr + 1;
+				(nextWritePtr < IOState.nbufs) && (IOState.remaining - sectorsTotal > 0);
+				partitionsCleared++, nextWritePtr++) {
 
-		if(result >= 0)
-		{
-			bd->length = bytes;
+				if(PollSema(IOState.inBufSema) != IOState.inBufSema)
+					break;
 
-			//Update state
-			IOState.WritePtr = (IOState.WritePtr + 1) % IOState.nbufs;
-			SignalSema(IOState.outBufSema);
-			IOState.remaining -= sectors;
-		}
+				bd = &IOState.bd[nextWritePtr];
+				sectors = IOState.remaining - sectorsTotal < IOState.bufmax ? IOState.remaining - sectorsTotal : IOState.bufmax;
+				bd->length = sectors * 2048; //Indicate how many bytes will be in this partition.
+				sectorsTotal += sectors;
+			}
+
+			//Read raw data
+			do
+			{
+				result = fileXioRead(IOState.ioFD, buffer, sectorsTotal * 2048);
+			}while(result < 0 && result != -EIO);
+
+			if(result >= 0)
+			{
+				//Update state
+				IOState.WritePtr = (IOState.WritePtr + partitionsCleared) % IOState.nbufs;
+				for (i = 0; i < partitionsCleared; i++)
+					SignalSema(IOState.outBufSema);
+				IOState.remaining -= sectorsTotal;
+			}
+		} else
+			break;
 	}
 
 	return result;

@@ -41,6 +41,7 @@ extern struct RuntimeData RuntimeData;
 
 static char FreeDiskSpaceDisplay[16];
 static char IPAddressDisplay[16];	//XXX.XXX.XXX.XXX
+static u8 mac_address[6];
 
 static void DrawButton(const char *label, float x, float y, u64 TextColour, int IsSelected);
 static int GetUserGameSettings(struct GameSettings *GameSettings);
@@ -54,6 +55,8 @@ static void DeleteGame(struct HDLGameEntry *HDLGameList, unsigned int GameIndex)
 static int UpdateGame(struct HDLGameEntry *HDLGameList, unsigned int GameIndex);
 static void EnterRemoteClientMenu(struct RuntimeData *RuntimeData);
 static int StartInstallGame(sceCdRMode *ReadMode);
+static void UpdateNetworkStatus(void);
+static void UpdateHardwareAddress(void);
 static void ShowNetworkStatus(void);
 static int ShowOptions(void);
 static void DrawMenuExitAnimation(void);
@@ -916,7 +919,6 @@ static void RedrawMainMenu(struct HDLGameEntry *HDLGameList, unsigned int NumHDL
 		LastSelectedItem = SelectedGameListItem;
 	}
 
-	LockCentralHDLGameList();
 	/* Draw the game list */
 	for(i=0; i<NumGamesToDisplay; i++)
 	{
@@ -948,7 +950,6 @@ static void RedrawMainMenu(struct HDLGameEntry *HDLGameList, unsigned int NumHDL
 			wFontPrintTitle(gsGlobal, 14, 60+i*16, 1, 1.0f, GS_WHITE_FONT, title, GAME_LIST_TITLE_MAX_PIX);
 		}
 	}
-	UnlockCentralHDLGameList();
 #else
 	NumGamesToDisplay=GAME_LIST_MAX_DISPLAYED_GAMES;
 
@@ -985,16 +986,22 @@ static unsigned int GetGameListData(struct HDLGameEntry **HDLGameList, struct Ga
 	return NumGames;
 }
 
-static unsigned int ReloadGameList(struct HDLGameEntry **HDLGameList, struct GameListDisplayData *GameListDisplayData){
+static unsigned int LoadGameList(struct HDLGameEntry **HDLGameList, struct GameListDisplayData *GameListDisplayData){
 	unsigned int result;
 
-	DisplayFlashStatusUpdate(SYS_UI_MSG_PLEASE_WAIT);
-	LoadHDLGameList(HDLGameList);
 	result = GetGameListData(HDLGameList, GameListDisplayData);
 
 	sysGetFreeDiskSpaceDisplay(FreeDiskSpaceDisplay);
 
 	return result;
+}
+
+static unsigned int ReloadGameList(struct HDLGameEntry **HDLGameList, struct GameListDisplayData *GameListDisplayData){
+	unsigned int result;
+
+	DisplayFlashStatusUpdate(SYS_UI_MSG_PLEASE_WAIT);
+	LoadHDLGameList(HDLGameList);
+	return LoadGameList(HDLGameList, GameListDisplayData);
 }
 
 static void DeleteGame(struct HDLGameEntry *HDLGameList, unsigned int GameIndex){
@@ -1132,53 +1139,6 @@ RedisplayGameOptionScreen:
 	return result;
 }
 
-enum REMOCON_SCREEN_ID{
-	REMOCON_SCREEN_ID_TITLE	= 1,
-	REMOCON_SCREEN_ID_MESSAGE
-};
-
-static struct UIMenuItem RemoconMenuItems[]={
-	{MITEM_LABEL, REMOCON_SCREEN_ID_TITLE},
-	{MITEM_SEPERATOR},
-	{MITEM_BREAK},
-
-	{MITEM_STRING, REMOCON_SCREEN_ID_MESSAGE, MITEM_FLAG_READONLY}, {MITEM_BREAK}, {MITEM_BREAK},
-
-	{MITEM_TERMINATOR}
-};
-
-static struct UIMenu RemoconMenu = {NULL, NULL, RemoconMenuItems, {{-1, -1}, {-1, -1}}};
-
-static void EnterRemoteClientMenu(struct RuntimeData *RuntimeData){
-	unsigned int PadStatus;
-
-	UISetLabel(&RemoconMenu, REMOCON_SCREEN_ID_TITLE, SYS_UI_LBL_REMOTE_CONN);
-	UISetString(&RemoconMenu, REMOCON_SCREEN_ID_MESSAGE, GetUIString(SYS_UI_MSG_REMOTE_CONN));
-
-	while(RuntimeData->IsRemoteClientConnected){
-		UIDrawMenu(&RemoconMenu, 0, UI_OFFSET_X, UI_OFFSET_Y, -1);
-
-		DrawButtonLegend(gsGlobal, &PadLayoutTexture, BUTTON_TYPE_SELECT, 300, 360, 4);
-		FontPrintf(gsGlobal, 340, 362, 1, 1.0f, GS_WHITE_FONT, GetUILabel(SYS_UI_LBL_NETWORK_STATUS));
-
-		SyncFlipFB();
-
-		PadStatus=ReadCombinedPadStatus();
-
-		/* Do not allow the user to terminate remote sessions as
-		   there is currently insufficient code to properly terminate reading/writing. */
-	/*	if(PadStatus&CancelButton){
-			DisplayFlashStatusUpdate(SYS_UI_MSG_PLEASE_WAIT);
-			DisconnectAllClients();
-			break;
-		} */
-
-		if(PadStatus&PAD_SELECT){
-			ShowNetworkStatus();
-		}
-	}
-}
-
 enum NETSTAT_SCREEN_ID{
 	NETSTAT_ID_ADDRESS_TYPE	= 1,
 	NETSTAT_ID_MAC_0,
@@ -1272,6 +1232,73 @@ static struct UIMenuItem NetstatMenuItems[]={
 
 static struct UIMenu NetstatMenu = {NULL, NULL, NetstatMenuItems, {{-1, -1}, {BUTTON_TYPE_SYS_CANCEL, SYS_UI_LBL_BACK}}};
 
+static void UpdateNetworkStatus(void)
+{
+	u8 ip_address[4], subnet_mask[4], gateway[4];
+	u8 dhcp;
+#ifdef ENABLE_NETWORK_SUPPORT
+	t_ip_info ip_info;
+#endif
+
+#ifdef ENABLE_NETWORK_SUPPORT
+	//SMAP is registered as the "sm0" device to the TCP/IP stack.
+	if (ps2ip_getconfig("sm0", &ip_info) >= 0)
+	{
+		ip_address[0] = ip4_addr1((struct ip4_addr *)&ip_info.ipaddr);
+		ip_address[1] = ip4_addr2((struct ip4_addr *)&ip_info.ipaddr);
+		ip_address[2] = ip4_addr3((struct ip4_addr *)&ip_info.ipaddr);
+		ip_address[3] = ip4_addr4((struct ip4_addr *)&ip_info.ipaddr);
+
+		subnet_mask[0] = ip4_addr1((struct ip4_addr *)&ip_info.netmask);
+		subnet_mask[1] = ip4_addr2((struct ip4_addr *)&ip_info.netmask);
+		subnet_mask[2] = ip4_addr3((struct ip4_addr *)&ip_info.netmask);
+		subnet_mask[3] = ip4_addr4((struct ip4_addr *)&ip_info.netmask);
+
+		gateway[0] = ip4_addr1((struct ip4_addr *)&ip_info.gw);
+		gateway[1] = ip4_addr2((struct ip4_addr *)&ip_info.gw);
+		gateway[2] = ip4_addr3((struct ip4_addr *)&ip_info.gw);
+		gateway[3] = ip4_addr4((struct ip4_addr *)&ip_info.gw);
+
+		dhcp = ip_info.dhcp_enabled;
+	} else {
+#endif
+		memset(ip_address, 0, sizeof(ip_address));
+		memset(subnet_mask, 0, sizeof(subnet_mask));
+		memset(gateway, 0, sizeof(gateway));
+		dhcp = 0;
+#ifdef ENABLE_NETWORK_SUPPORT
+	}
+#endif
+
+	UISetLabel(&NetstatMenu, NETSTAT_ID_ADDRESS_TYPE, dhcp ? SYS_UI_LBL_IP_DHCP : SYS_UI_LBL_IP_STATIC);
+
+	UISetValue(&NetstatMenu, NETSTAT_ID_IP_0, ip_address[0]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_IP_1, ip_address[1]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_IP_2, ip_address[2]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_IP_3, ip_address[3]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_NM_0, subnet_mask[0]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_NM_1, subnet_mask[1]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_NM_2, subnet_mask[2]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_NM_3, subnet_mask[3]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_GW_0, gateway[0]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_GW_1, gateway[1]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_GW_2, gateway[2]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_GW_3, gateway[3]);
+}
+
+static void UpdateHardwareAddress(void)
+{
+	memset(mac_address, 0, sizeof(mac_address));
+	NetManIoctl(NETMAN_NETIF_IOCTL_ETH_GET_MAC, NULL, 0, mac_address, sizeof(mac_address));
+
+	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_0, mac_address[0]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_1, mac_address[1]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_2, mac_address[2]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_3, mac_address[3]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_4, mac_address[4]);
+	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_5, mac_address[5]);
+}
+
 static int NetstatMenuUpdate(struct UIMenu *menu, unsigned short int frame, int selection, u32 padstatus)
 {
 	int result, NetworkLinkState, NetworkLinkMode, NetworkLinkFlowControl;
@@ -1294,8 +1321,8 @@ static int NetstatMenuUpdate(struct UIMenu *menu, unsigned short int frame, int 
 		if(NetworkLinkState == NETMAN_NETIF_ETH_LINK_STATE_UP)
 		{
 			result = NetManIoctl(NETMAN_NETIF_IOCTL_ETH_GET_LINK_MODE, NULL, 0, NULL, 0);
-			NetworkLinkMode = result & ~NETMAN_NETIF_ETH_LINK_MODE_PAUSE;
-			NetworkLinkFlowControl = (result & NETMAN_NETIF_ETH_LINK_MODE_PAUSE) != 0;
+			NetworkLinkMode = result & ~NETMAN_NETIF_ETH_LINK_DISABLE_PAUSE;
+			NetworkLinkFlowControl = (result & NETMAN_NETIF_ETH_LINK_DISABLE_PAUSE) == 0;
 
 			TxDroppedFrameCount = NetManIoctl(NETMAN_NETIF_IOCTL_GET_TX_DROPPED_COUNT, NULL, 0, NULL, 0);
 			RxDroppedFrameCount = NetManIoctl(NETMAN_NETIF_IOCTL_GET_RX_DROPPED_COUNT, NULL, 0, NULL, 0);
@@ -1335,6 +1362,7 @@ static int NetstatMenuUpdate(struct UIMenu *menu, unsigned short int frame, int 
 			UISetVisible(&NetstatMenu, NETSTAT_ID_LINK_FLOW_CONTROL, 0);
 		}
 
+		UpdateNetworkStatus();
 	}
 
 	return 0;
@@ -1342,69 +1370,62 @@ static int NetstatMenuUpdate(struct UIMenu *menu, unsigned short int frame, int 
 
 static void ShowNetworkStatus(void)
 {
-	u8 mac_address[6];
-	u8 ip_address[4], subnet_mask[4], gateway[4];
-	u8 dhcp;
-#ifdef ENABLE_NETWORK_SUPPORT
-	t_ip_info ip_info;
-#endif
-
-#ifdef ENABLE_NETWORK_SUPPORT
-	//SMAP is registered as the "sm0" device to the TCP/IP stack.
-	if (ps2ip_getconfig("sm0", &ip_info) >= 0)
-	{
-		ip_address[0] = ip4_addr1((struct ip4_addr *)&ip_info.ipaddr);
-		ip_address[1] = ip4_addr2((struct ip4_addr *)&ip_info.ipaddr);
-		ip_address[2] = ip4_addr3((struct ip4_addr *)&ip_info.ipaddr);
-		ip_address[3] = ip4_addr4((struct ip4_addr *)&ip_info.ipaddr);
-
-		subnet_mask[0] = ip4_addr1((struct ip4_addr *)&ip_info.netmask);
-		subnet_mask[1] = ip4_addr2((struct ip4_addr *)&ip_info.netmask);
-		subnet_mask[2] = ip4_addr3((struct ip4_addr *)&ip_info.netmask);
-		subnet_mask[3] = ip4_addr4((struct ip4_addr *)&ip_info.netmask);
-
-		gateway[0] = ip4_addr1((struct ip4_addr *)&ip_info.gw);
-		gateway[1] = ip4_addr2((struct ip4_addr *)&ip_info.gw);
-		gateway[2] = ip4_addr3((struct ip4_addr *)&ip_info.gw);
-		gateway[3] = ip4_addr4((struct ip4_addr *)&ip_info.gw);
-
-		dhcp = ip_info.dhcp_enabled;
-	} else {
-#endif
-		memset(ip_address, 0, sizeof(ip_address));
-		memset(subnet_mask, 0, sizeof(subnet_mask));
-		memset(gateway, 0, sizeof(gateway));
-		dhcp = 0;
-#ifdef ENABLE_NETWORK_SUPPORT
-	}
-#endif
-
-	UISetLabel(&NetstatMenu, NETSTAT_ID_ADDRESS_TYPE, dhcp ? SYS_UI_LBL_IP_DHCP : SYS_UI_LBL_IP_STATIC);
-
-	memset(mac_address, 0, sizeof(mac_address));
-	NetManIoctl(NETMAN_NETIF_IOCTL_ETH_GET_MAC, NULL, 0, mac_address, sizeof(mac_address));
-
-	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_0, mac_address[0]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_1, mac_address[1]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_2, mac_address[2]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_3, mac_address[3]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_4, mac_address[4]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_MAC_5, mac_address[5]);
-
-	UISetValue(&NetstatMenu, NETSTAT_ID_IP_0, ip_address[0]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_IP_1, ip_address[1]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_IP_2, ip_address[2]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_IP_3, ip_address[3]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_NM_0, subnet_mask[0]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_NM_1, subnet_mask[1]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_NM_2, subnet_mask[2]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_NM_3, subnet_mask[3]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_GW_0, gateway[0]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_GW_1, gateway[1]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_GW_2, gateway[2]);
-	UISetValue(&NetstatMenu, NETSTAT_ID_GW_3, gateway[3]);
+	//Show back button on network status screen.
+	NetstatMenu.hints[1].button = BUTTON_TYPE_SYS_CANCEL;
 
 	UIExecMenu(&NetstatMenu, -1, NULL, &NetstatMenuUpdate);
+}
+
+enum REMOCON_SCREEN_ID{
+	REMOCON_SCREEN_ID_TITLE	= 1,
+	REMOCON_SCREEN_ID_MESSAGE
+};
+
+static struct UIMenuItem RemoconMenuItems[]={
+	{MITEM_LABEL, REMOCON_SCREEN_ID_TITLE, 0, 0, 0, 0, 0, SYS_UI_LBL_REMOTE_CONN},
+	{MITEM_SEPERATOR},
+	{MITEM_BREAK},
+
+	{MITEM_STRING, REMOCON_SCREEN_ID_MESSAGE, MITEM_FLAG_READONLY}, {MITEM_BREAK}, {MITEM_BREAK},
+
+	{MITEM_TERMINATOR}
+};
+
+static struct UIMenu RemoconMenu = {NULL, NULL, RemoconMenuItems, {{-1, -1}, {-1, -1}}};
+
+static void EnterRemoteClientMenu(struct RuntimeData *RuntimeData){
+	unsigned int PadStatus;
+	unsigned int frame;
+	unsigned char menuToShow;
+
+	//Hide back button on network status screen.
+	NetstatMenu.hints[1].button = -1;
+	//Set on-screen message.
+	UISetString(&RemoconMenu, REMOCON_SCREEN_ID_MESSAGE, GetUIString(SYS_UI_MSG_REMOTE_CONN));
+
+	//End communications with PADMAN to improve response time by the IOP, as PADMAN sends updates for the pad status every 1/60th a second.
+	DeinitPads();
+
+	frame = 0;
+	menuToShow = 0;
+	while(RuntimeData->IsRemoteClientConnected){
+		UIDrawMenu((menuToShow == 0) ? &RemoconMenu : &NetstatMenu, 0, UI_OFFSET_X, UI_OFFSET_Y, -1);
+
+		SyncFlipFB();
+		frame++;
+
+		if (frame % NETSTAT_UPDATE_INTERVAL == 0)
+			menuToShow ^= 1;
+
+		//Update the network status menu when it is shown.
+		if (menuToShow == 1)
+			NetstatMenuUpdate(&NetstatMenu, frame, 0, 0);
+
+		PadStatus=ReadCombinedPadStatus();
+	}
+
+	//Re-enable communications with PADMAN.
+	InitPads();
 }
 
 enum OPTIONS_SCREEN_ID{
@@ -1663,6 +1684,7 @@ static int ShowOptions(void)
 
 			//Apply settings.
 			ethReinit();
+			ethValidate();
 #endif
 
 			if(result == 0)
@@ -1717,9 +1739,11 @@ void MainMenu(void)
 	}
 #endif
 
+	UpdateHardwareAddress();
+
 	HDLGameList = NULL;
-	NumHDLGames = ReloadGameList(&HDLGameList, &GameListDisplayData);
-	CurrentGameListGeneration = GetGameListData(&HDLGameList, &GameListDisplayData);
+	NumHDLGames = LoadGameList(&HDLGameList, &GameListDisplayData);
+	CurrentGameListGeneration = GetHDLGameListGeneration();
 	done = 0;
 	PadStatus_old_raw = 0;
 	PadRepeatDelayTicks = UI_PAD_REPEAT_START_DELAY;
@@ -1733,11 +1757,6 @@ void MainMenu(void)
 			EnterRemoteClientMenu(&RuntimeData);
 		}
 		PadStatus=ReadCombinedPadStatus();
-
-		if(GetHDLGameListGeneration()!=CurrentGameListGeneration){
-			CurrentGameListGeneration=GetHDLGameListGeneration();
-			NumHDLGames=GetGameListData(&HDLGameList, &GameListDisplayData);
-		}
 
 		if(NumHDLGames>0){
 			//For the pad repeat delay effect.
@@ -1843,7 +1862,18 @@ void MainMenu(void)
 #endif
 		}
 
+		//Prevent updates while the main menu is being drawn. Lock it here, so that RedrawMainMenu() will not carry an outdated pointer to the game list with it.
+		LockCentralHDLGameList();
+
+		//If the list was updated (by the network client), get the updated game list.
+		//Get a new reference to the game list here, to ensure that it is fresh between the locking and unlocking.
+		if(GetHDLGameListGeneration()!=CurrentGameListGeneration){
+			CurrentGameListGeneration=GetHDLGameListGeneration();
+			NumHDLGames=GetGameListData(&HDLGameList, &GameListDisplayData);
+		}
+
 		RedrawMainMenu(HDLGameList, NumHDLGames, GameListDisplayData.SelectedGameIndex, GameListDisplayData.GameListViewPortStart);
+		UnlockCentralHDLGameList();
 		SyncFlipFB();
 
 		frame++;
@@ -2035,6 +2065,9 @@ int DisplaySoftKeyboard(wchar_t *buffer, unsigned int length, unsigned int optio
 	CursorPosition = 0;
 	CursorPositionOnScreen = CursorPosition;
 	DisplayedCharCount = 0;
+
+	//Wait for all buttons to be released.
+	while(ReadCombinedPadStatus_raw() != 0){};
 
 	while(!done)
 	{
@@ -2308,7 +2341,7 @@ int ShowWaitForDiscDialog(void){
 	DisplayFlashStatusUpdate(SYS_UI_MSG_READING_DISC);
 	result=0;
 
-	do{
+	while(1){
 		DiscType=sceCdGetDiskType();
 		PadStatus=ReadCombinedPadStatus();
 
@@ -2317,15 +2350,20 @@ int ShowWaitForDiscDialog(void){
 			result=1;
 			break;
 		}
-		else if(DiscType==SCECdDETCT || DiscType==SCECdDETCTCD || SCECdDETCTDVDS || SCECdDETCTDVDD){
+		else if(DiscType==SCECdDETCT || DiscType==SCECdDETCTCD || DiscType==SCECdDETCTDVDS || DiscType==SCECdDETCTDVDD){
 			DisplayFlashStatusUpdate(SYS_UI_MSG_READING_DISC);
 		}
-		else{	/* CDVD_TYPE_UNKNOWN, CDVD_TYPE_ILLEGAL, CDVD_TYPE_DVDVIDEO or CDVD_TYPE_CDDA */
+		else if(DiscType>=SCECdPS2CD && DiscType<=SCECdPS2DVD){
+			/* Supported disc types */
+			result=0;
+			break;
+		}
+		else{	/* Unsupported disc types */
 			DisplayErrorMessage(SYS_UI_MSG_UNSUP_DISC);
 			result=1;
 			break;
 		}
-	}while(DiscType<SCECdPSCD || DiscType>SCECdPS2DVD);
+	}
 
 	return result;
 }

@@ -14,7 +14,7 @@ int FontReset(GSGLOBAL *gsGlobal);	//Performs a partial re-initialization of the
 void FontPrintfWithFeedback(GSGLOBAL *gsGlobal, short int x, short int y, short int z, float scale, u64 colour, const char *string, short int *xRel, short int *yRel);
 void FontPrintf(GSGLOBAL *gsGlobal, short int x, short int y, short int z, float scale, u64 colour, const char *string);
 void FontGetPrintPos(GSGLOBAL *gsGlobal, short int *x_rel, short int *y_rel, float scale, const char *string, int pos);
-int FontGetGlyphWidth(wint_t character);
+int FontGetGlyphWidth(GSGLOBAL *gsGlobal, wint_t character);
 void wFontPrintfWithFeedback(GSGLOBAL *gsGlobal, short x, short int y, short int z, float scale, u64 colour, const wchar_t *string, short int *xRel, short int *yRel);
 void wFontPrintf(GSGLOBAL *gsGlobal, short int x, short int y, short int z, float scale, u64 colour, const wchar_t *string);
 int wFontPrintField(GSGLOBAL *gsGlobal, short int x, short int y, short int z, float scale, u64 colour, const wchar_t *string, unsigned int spacePix, int cursor);

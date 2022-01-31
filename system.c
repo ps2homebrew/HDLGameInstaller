@@ -316,7 +316,8 @@ int InitGameCDVDInformation(sceCdRMode *ReadMode, char *DiscID, char *StartupFna
 
 	DEBUG_PRINTF("\n\tDisc type: 0x%02x\n", *discType);
 
-	if((*discType=sceCdGetDiskType())<SCECdPSCD || *discType>SCECdPS2DVD){
+	*discType=sceCdGetDiskType();
+	if(*discType<SCECdPS2CD || *discType>SCECdPS2DVD){
 		DisplayErrorMessage(SYS_UI_MSG_UNSUP_DISC);
 		return -EIO;
 	}
@@ -367,16 +368,21 @@ static void RetrieveGameInstallationDataBuffer(hdl_game_info *gInfo, const char 
 }
 
 int RetrieveGameInstallationSector(u32 lba, const char *partition, struct HDLGameEntry *GameEntry){
-	hdl_game_info gInfo;
+	hdl_game_info *gInfo;
 	hddAtaTransfer_t arg;
 	int result;
 
-	// Note: The APA specification states that there is a 4KB area used for storing the partition's information, before the extended attribute area.
-	arg.lba = lba + (HDL_GAME_DATA_OFFSET+4096)/512;
-	arg.size = sizeof(hdl_game_info) / 512;
-	if((result = fileXioDevctl("hdd0:", HDIOC_READSECTOR, &arg, sizeof(arg), &gInfo, sizeof(gInfo))) == 0){
-		RetrieveGameInstallationDataBuffer(&gInfo, partition, GameEntry);
-	}
+	if ((gInfo = memalign(64, sizeof(hdl_game_info))) != NULL) {
+		// Note: The APA specification states that there is a 4KB area used for storing the partition's information, before the extended attribute area.
+		arg.lba = lba + (HDL_GAME_DATA_OFFSET+4096)/512;
+		arg.size = sizeof(hdl_game_info) / 512;
+		if((result = fileXioDevctl("hdd0:", HDIOC_READSECTOR, &arg, sizeof(arg), gInfo, sizeof(hdl_game_info))) == 0){
+			RetrieveGameInstallationDataBuffer(gInfo, partition, GameEntry);
+		}
+
+		free(gInfo);
+	} else
+		result = -ENOMEM;
 
 	return result;
 }
@@ -624,7 +630,6 @@ static int CreateAndFormatPartition(const char *PartName, const wchar_t *GameTit
 			DEBUG_PRINTF("Formatting result: %d\n", result);
 		}else{
 			printf("Error creating sub-partition. Code: %d\n", result);
-			result=fd;
 		}
 
 		if(result<0){
@@ -955,7 +960,7 @@ void sysGetFreeDiskSpaceDisplay(char *space)
 int ethApplyNetIFConfig(int mode)
 {
 	int result;
-	//By default, auto-negotiation is used.
+	//By default, auto-negotiation (with flow control) is used.
 	static int CurrentMode = NETMAN_NETIF_ETH_LINK_MODE_AUTO;
 
 	if(CurrentMode != mode)
@@ -1060,10 +1065,11 @@ int ethApplyIPConfig(int use_dhcp, const struct ip4_addr *ip, const struct ip4_a
 	return result;
 }
 
+//This will apply link & network settings. It will return without waiting, hence ethValidate() should be used to validate that the network is accessible.
 void ethInit(void)
 {
 	struct ip4_addr IP, NM, GW;
-	int mode, ValidLink;
+	int mode;
 
 	if(RuntimeData.UseDHCP)
 	{
@@ -1081,39 +1087,21 @@ void ethInit(void)
 		mode = NETMAN_NETIF_ETH_LINK_MODE_AUTO;
 	} else {
 		mode = RuntimeData.EthernetLinkMode;
-		if(RuntimeData.EthernetFlowControl)
-			mode |= NETMAN_NETIF_ETH_LINK_MODE_PAUSE;
+		if(!RuntimeData.EthernetFlowControl)
+			mode |= NETMAN_NETIF_ETH_LINK_DISABLE_PAUSE;
 	}
 
-	do{
-		//Wait for the link to become ready before changing the setting.
-		if(ethWaitValidNetIFLinkState() != 0) {
-			break;	//If it cannot be done, don't fail here.
-		}
-
-		//Attempt to apply the new link setting.
-	} while(ethApplyNetIFConfig(mode) != 0);
+	ethApplyNetIFConfig(mode);	//If it cannot be done, don't fail here.
 
 	ps2ipInit(&IP, &NM, &GW);
-
-	ValidLink = (ethWaitValidNetIFLinkState() == 0);
 
 	if(RuntimeData.UseDHCP)
 	{	//Enable DHCP (static IP is used by default).
 		ethApplyIPConfig(1, &IP, &NM, &GW);
 	}
-
-	if(ValidLink)
-	{
-		if(RuntimeData.UseDHCP)
-		{
-			if (ethWaitValidDHCPState() != 0)
-				DisplayErrorMessage(SYS_UI_MSG_DHCP_ERROR);
-		}
-	} else
-		DisplayErrorMessage(SYS_UI_MSG_NO_NETWORK_CONNECTION);
 }
 
+//This will apply the new link & network settings. It will return without waiting, hence ethValidate() should be used to validate that the network is accessible.
 void ethReinit(void)
 {
 	int result, mode;
@@ -1135,22 +1123,22 @@ void ethReinit(void)
 		mode = NETMAN_NETIF_ETH_LINK_MODE_AUTO;
 	} else {
 		mode = RuntimeData.EthernetLinkMode;
-		if(RuntimeData.EthernetFlowControl)
-			mode |= NETMAN_NETIF_ETH_LINK_MODE_PAUSE;
+		if(!RuntimeData.EthernetFlowControl)
+			mode |= NETMAN_NETIF_ETH_LINK_DISABLE_PAUSE;
 	}
 
-	do{
-		//Wait for the link to become ready before changing the setting.
-		if(ethWaitValidNetIFLinkState() != 0) {
-			DisplayErrorMessage(SYS_UI_MSG_NO_NETWORK_CONNECTION);
-			break;
-		}
-
-		//Attempt to apply the new link setting.
-	} while(ethApplyNetIFConfig(mode) != 0);
+	//Attempt to apply the new link setting.
+	if(ethApplyNetIFConfig(mode) != 0)
+	{
+		DisplayErrorMessage(SYS_UI_MSG_NO_NETWORK_CONNECTION);
+	}
 
 	ethApplyIPConfig(RuntimeData.UseDHCP, &IP, &NM, &GW);
+}
 
+//Validates that the network is accessible, given the current settings.
+void ethValidate(void)
+{
 	if(ethWaitValidNetIFLinkState() == 0)
 	{
 		if(RuntimeData.UseDHCP)

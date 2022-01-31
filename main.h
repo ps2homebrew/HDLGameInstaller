@@ -3,7 +3,7 @@
 //Extended error codes.
 #define EEXTCONNLOST	0x2000
 
-#define FILEIO_BLOCK_SIZE		(32*2048)			//Size of the FILEIO Read/Write buffer.
+#define FILEIO_BLOCK_SIZE		(256*2048)			//Size of the FILEIO Read/Write buffer.
 
 #define GAME_TITLE_MAX_LEN_BYTES	160				//In bytes, when in UTF-8 characters.
 #define GAME_TITLE_MAX_LEN		(GAME_TITLE_MAX_LEN_BYTES/2)	/*	In characters. Note: the original format for HDLoader just has a 160-character space.
@@ -17,7 +17,7 @@
 	#define DEBUG_PRINTF(args...)
 #endif
 
-#define HDLGAME_INSTALLER_VERSION	"0.816"
+#define HDLGAME_INSTALLER_VERSION	"0.821"
 
 #define ENABLE_NETWORK_SUPPORT
 //#define UI_TEST_MODE

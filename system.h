@@ -53,5 +53,6 @@ int ethWaitValidDHCPState(void);
 int ethApplyIPConfig(int use_dhcp, const struct ip4_addr *ip, const struct ip4_addr *netmask, const struct ip4_addr *gateway);
 void ethInit(void);
 void ethReinit(void);
+void ethValidate(void);
 void ethGetIPAddressDisplay(char *ip);
 #endif

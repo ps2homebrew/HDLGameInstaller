@@ -4,7 +4,20 @@
 
 #include "pad.h"
 
+static u8 PadArea[2][256] __attribute__((aligned(64)));
 static unsigned int old_pad[2]={0, 0};
+
+void InitPads(void){
+	padInit(0);
+	padPortOpen(0, 0, PadArea[0]);
+	padPortOpen(1, 0, PadArea[1]);
+}
+
+void DeinitPads(void){
+	padPortClose(0, 0);
+	padPortClose(1, 0);
+	padEnd();
+}
 
 int ReadPadStatus_raw(int port, int slot){
 	struct padButtonStatus buttons;

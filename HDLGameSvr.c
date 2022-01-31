@@ -1,5 +1,6 @@
 #include <kernel.h>
 #include <libcdvd.h>
+#include <limits.h>
 #include <iopcontrol.h>
 #include <iopheap.h>
 #include <libmc.h>
@@ -71,6 +72,8 @@ struct ClientData{
 	int task;
 	void *TaskData;
 	unsigned char status;
+	unsigned char DataThreadRunning;
+	unsigned char ServerThreadRunning;
 	int ServerThreadID;
 	int DataThreadID;
 	int StateSemaID;	//Semaphore for locking the thread running state.
@@ -98,15 +101,17 @@ static int SendPayload(SOCKET connection, const void *payload, unsigned int Payl
 static int ReceiveData(SOCKET connection, void *buffer, int length);
 static int GetResponse(SOCKET connection, void *buffer, int NumBytes);
 static int CreateServerThread(void);
+static int CreateClientThread(struct ClientData *client);
 static void DeinitServer(void);
 static void DisconnectSocketConnection(SOCKET connection);
+static void DisconnectDataConnection(SOCKET connection);
 static int EndInstallation(struct ClientData *client);
 static int CloseGame(struct ClientData *client);
 static int CleanupClientConnection(struct ClientData *client);
 static int PowerOffServer(struct ClientData *client, void *buffer, unsigned int length);
 static int HandlePacket(struct ClientData *client, unsigned int command, unsigned char *buffer, unsigned int length);
 static void ServerClientService(struct ClientData *client);
-static int CreateClientThread(struct ClientData *client, SOCKET s, const struct sockaddr *peer);
+static int StartClientThread(struct ClientData *client, SOCKET s, const struct sockaddr *peer);
 static void ServerLoop(void);
 static void DataThread(struct ClientData *client);
 static int MountOpenGame(struct GameInstallationContext *InstallationContext, struct ClientData *client, u32 sectors, u32 offset, int write);
@@ -306,6 +311,55 @@ static int CreateServerThread(void)
 	}
 }
 
+static int CreateClientThread(struct ClientData *client)
+{
+	ee_sema_t sema;
+	ee_thread_t thread;
+	int ThreadID;
+
+	sema.init_count = 1;
+	sema.max_count = 1;
+	sema.attr = 0;
+	sema.option = (u32)"client-state";
+	if((client->StateSemaID = CreateSema(&sema)) >= 0)
+	{
+		thread.func = (void*)&DataThread;
+		thread.stack = client->DataThreadStack;
+		thread.stack_size = CLIENT_THREAD_STACK_SIZE;
+		thread.gp_reg = &_gp;
+		thread.initial_priority = SERVER_CLIENT_THREAD_PRIORITY;
+		thread.attr = 0;
+		thread.option = 0;
+
+		//Create the data thread. It will be in DORMANT state.
+		if((client->DataThreadID = CreateThread(&thread)) >= 0)
+		{
+			thread.func = (void*)ServerClientService;
+			thread.stack = client->stack;
+			thread.stack_size = CLIENT_THREAD_STACK_SIZE;
+			thread.gp_reg = &_gp;
+			thread.initial_priority = SERVER_CLIENT_THREAD_PRIORITY;
+			thread.attr = 0;
+			thread.option = 0;
+
+			//Create the client server thread. It will be in DORMANT state.
+			if((client->ServerThreadID = CreateThread(&thread)) >= 0)
+				return 0;
+
+			DeleteThread(client->DataThreadID);
+			DeleteSema(client->StateSemaID);
+			return client->ServerThreadID;
+		}
+		else
+		{
+			DeleteSema(client->StateSemaID);
+			return client->DataThreadID;
+		}
+	} else {
+		return client->StateSemaID;
+	}
+}
+
 int InitializeStartServer(void)
 {
 	ee_sema_t sema;
@@ -332,11 +386,23 @@ int InitializeStartServer(void)
 			ClientData[i].ServerThreadID = -1;
 			ClientData[i].task = TASK_NONE;
 			ClientData[i].TaskData = NULL;
+			ClientData[i].ServerThreadRunning = 0;
+			ClientData[i].DataThreadRunning = 0;
+			if ((result = CreateClientThread(&ClientData[i])) != 0)
+			{
+				printf("Failed to create client thread: %d\n", result);
+				DisconnectSocketConnection(srvSocket);
+				return result;
+			}
 		}
 
 		result=0;
 	}
-	else result=-EIO;
+	else
+	{
+		result = -1;
+		DisconnectSocketConnection(srvSocket);
+	}
 
 	if(result>=0)
 		CreateServerThread();
@@ -369,9 +435,12 @@ static void DeinitServer(void)
 		{
 			client = &ClientData[i];
 
-			if((ReferThreadStatus(client->ServerThreadID, &info) == client->ServerThreadID) && (info.status != THS_DORMANT))
+			if(!client->ServerThreadRunning)
 			{
+				DeleteThread(client->ServerThreadID);
+				DeleteThread(client->DataThreadID);
 				client->ServerThreadID = -1;
+				client->DataThreadID = -1;
 
 				DeleteSema(client->StateSemaID);
 				client->StateSemaID = -1;
@@ -385,6 +454,17 @@ static void DeinitServer(void)
 static void DisconnectSocketConnection(SOCKET connection)
 {
 	shutdown(connection, SHUT_RDWR);
+	closesocket(connection);
+}
+
+//Close the socket gracefully, waiting for the remote to close the connection. Use this to complete successful data transfers.
+static void DisconnectDataConnection(SOCKET connection)
+{
+	char dummy;
+
+	shutdown(connection, SHUT_WR);
+	//Wait for the remote end to close the socket, which shall happen after all sent data has been received.
+	while(recv(connection, &dummy, sizeof(dummy), 0) > 0);
 	closesocket(connection);
 }
 
@@ -479,14 +559,14 @@ static void ServerClientService(struct ClientData *client)
 {
 	struct timeval timeout;
 	fd_set readFDs;
-	unsigned char done;
 	int result, SkipPayload, id;
 	struct HDDToolsPacketHdr header;
 
+	client->ServerThreadRunning = 1;
+
 	printf("Client connected.\n");
 
-	done = 0;
-	while(!done)
+	while(1)
 	{
 		result = recv(client->socket, &header, sizeof(header), 0);
 
@@ -534,64 +614,25 @@ static void ServerClientService(struct ClientData *client)
 				break;
 			}
 		} else {
-			done = 1;
+			break;
 		}
 	}
 
 	printf("Client disconnected.\n");
 
-	WaitSema(client->StateSemaID);
-	client->status &= ~CLIENT_STATUS_CONNECTED;
-	SignalSema(client->StateSemaID);	//Unlock state
-
 	DisconnectSocketConnection(client->socket);
 	CleanupClientConnection(client);
 
-	ExitDeleteThread();
+	client->ServerThreadRunning = 0;
 }
 
-static int CreateClientThread(struct ClientData *client, SOCKET s, const struct sockaddr *peer)
+static int StartClientThread(struct ClientData *client, SOCKET s, const struct sockaddr *peer)
 {
-	ee_sema_t sema;
-	ee_thread_t thread;
-	int ThreadID;
-
 	client->socket = s;
 	client->status = CLIENT_STATUS_CONNECTED;
 	memcpy(&client->peer, peer, sizeof(struct sockaddr));
 
-	sema.init_count = 1;
-	sema.max_count = 1;
-	sema.attr = 0;
-	sema.option = (u32)"client-state";
-	if((client->StateSemaID = CreateSema(&sema)) >= 0)
-	{
-		thread.func = (void*)&DataThread;
-		thread.stack = client->DataThreadStack;
-		thread.stack_size = CLIENT_THREAD_STACK_SIZE;
-		thread.gp_reg = &_gp;
-		thread.initial_priority = SERVER_CLIENT_THREAD_PRIORITY;
-		thread.attr = 0;
-		thread.option = 0;
-
-		if((client->DataThreadID = CreateThread(&thread)) >= 0)
-		{
-			client->ServerThreadID = SysCreateThread(&ServerClientService, client->stack, CLIENT_THREAD_STACK_SIZE, client, SERVER_CLIENT_THREAD_PRIORITY);
-			if(client->ServerThreadID < 0)
-			{
-				DeleteThread(client->DataThreadID);
-				DeleteSema(client->StateSemaID);
-			}
-
-			return client->ServerThreadID;
-		}
-		else
-		{
-			DeleteSema(client->StateSemaID);
-		}
-	} else {
-		return client->StateSemaID;
-	}
+	return StartThread(client->ServerThreadID, client);
 }
 
 static void ServerLoop(void)
@@ -609,7 +650,7 @@ static void ServerLoop(void)
 	done = 0;
 	while(!done)
 	{
-		timeout.tv_sec = 1;
+		timeout.tv_sec = 3;
 		timeout.tv_usec = 0;
 		FD_ZERO(&readFDs);
 		FD_SET(srvSocket, &readFDs);
@@ -622,7 +663,7 @@ static void ServerLoop(void)
 				{
 					if(ClientData[i].status == 0)
 					{	/* Find an empty slot. */
-						if(CreateClientThread(&ClientData[i], TempSocketConnection, &peer) >= 0)
+						if(StartClientThread(&ClientData[i], TempSocketConnection, &peer) >= 0)
 						{
 							DI();
 							++NumClientsConnected;
@@ -674,6 +715,8 @@ static void DataThread(struct ClientData *client)
 	int result;
 	struct GameInstallationContext *InstallationContext;
 
+	client->DataThreadRunning = 1;
+
 	if(client->task == TASK_GAME_INSTALLATION)
 	{
 		InstallationContext=client->TaskData;
@@ -683,10 +726,14 @@ static void DataThread(struct ClientData *client)
 		else
 			result = ReadGame(client);
 
-		//Close the game here, if the connection was lost (client would be unable to close it).
-		if(result != 0)
-			CloseGame(client);
+		//Close the socket gracefully.
+		DisconnectDataConnection(client->DataSocket);
+
+		//Close the game here, regardless of how it went.
+		CloseGame(client);
 	}
+
+	client->DataThreadRunning = 0;
 }
 
 static int MountOpenGame(struct GameInstallationContext *InstallationContext, struct ClientData *client, u32 sectors, u32 offset, int write)
@@ -763,6 +810,10 @@ static int PrepareGameInstallation(struct ClientData *client, void *buffer, unsi
 				{
 					client->status |= (CLIENT_STATUS_MOUNTED_FS|CLIENT_STATUS_OPENED_FILE);
 					client->task=TASK_GAME_INSTALLATION;
+
+					DI();
+					NeedReloadGameList = 1;
+					EI();
 
 					result = InitDataConnection(client);
 				}
@@ -962,14 +1013,25 @@ static int ReadGame(struct ClientData *client)
 	return result;
 }
 
+static void CloseGameThreadCB(s32 alarm_id, u16 time, void *arg)
+{
+	iWakeupThread((int)arg);
+}
+
 static int HandleCloseGame(struct ClientData *client)
 {
 	int result;
 	struct GameInstallationContext *InstallationContext;
 
-	if((result = CloseGame(client)) >= 0)
-		LoadHDLGameList(NULL);
+	//Wait for the data thread to terminate.
+	while(client->DataThreadRunning)
+	{
+		printf("CloseGame: waiting for data thread %d.\n", client->DataThreadID);
+		SetAlarm(1000 * 16, &CloseGameThreadCB, (void*)GetThreadId());
+		SleepThread();
+	}
 
+	result = 0;	//Game was already closed by the data thread.
 	return SendResponse(client->socket, result, NULL, 0);
 }
 
@@ -983,44 +1045,61 @@ static int GetIOStatus(struct ClientData *client)
 
 static int LoadGameList(struct ClientData *client, void *buffer, unsigned int length)
 {
-	return SendResponse(client->socket, LoadHDLGameList(NULL), NULL, 0);
+	int reload, NumGames;
+
+	DI();
+	if(NeedReloadGameList)
+	{	//Reload the game list
+		NeedReloadGameList = 0;
+		reload = 1;
+	} else {
+		reload = 0;
+	}
+	EI();
+
+	NumGames = (reload) ? LoadHDLGameList(NULL) : GetHDLGameList(NULL);
+
+	return SendResponse(client->socket, NumGames, NULL, 0);
 }
 
 static int ReadGameList(struct ClientData *client, void *buffer, unsigned int length)
 {
-	int NumGamesInList, result, i;
+	int NumGamesInList, result, i, rcode;
 	struct HDLGameEntry *GameList, *pGameEntry;
 	struct HDLGameEntryTransit GameEntryTransit;
 
-	if((NumGamesInList=GetHDLGameList(&GameList))>0)
+	LockCentralHDLGameList();
+
+	if((NumGamesInList = GetHDLGameList(&GameList)) > 0)
 	{
-		if((result = SendResponse(client->socket, 0, NULL, 0)) != 0)
-			return result;
-
-		for(i = 0; i < NumGamesInList; i++)
+		if((result = SendResponse(client->socket, 0, NULL, 0)) == 0)
 		{
-			pGameEntry=&GameList[i];
+			for(i = 0; i < NumGamesInList; i++)
+			{
+				pGameEntry=&GameList[i];
 
-			strcpy(GameEntryTransit.GameTitle, pGameEntry->GameTitle);
-			GameEntryTransit.CompatibilityModeFlags=pGameEntry->CompatibilityModeFlags;
-			strcpy(GameEntryTransit.DiscID, pGameEntry->DiscID);
-			GameEntryTransit.DiscType=pGameEntry->DiscType;
-			strcpy(GameEntryTransit.PartName, pGameEntry->PartName);
-			GameEntryTransit.TRMode=pGameEntry->TRMode;
-			GameEntryTransit.TRType=pGameEntry->TRType;
-			GameEntryTransit.sectors=pGameEntry->sectors;
+				strcpy(GameEntryTransit.GameTitle, pGameEntry->GameTitle);
+				GameEntryTransit.CompatibilityModeFlags=pGameEntry->CompatibilityModeFlags;
+				strcpy(GameEntryTransit.DiscID, pGameEntry->DiscID);
+				GameEntryTransit.DiscType=pGameEntry->DiscType;
+				strcpy(GameEntryTransit.PartName, pGameEntry->PartName);
+				GameEntryTransit.TRMode=pGameEntry->TRMode;
+				GameEntryTransit.TRType=pGameEntry->TRType;
+				GameEntryTransit.sectors=pGameEntry->sectors;
 
-			if((result = SendPayload(client->socket, &GameEntryTransit, sizeof(struct HDLGameEntryTransit))) != sizeof(struct HDLGameEntryTransit))
-				return result;
+				if((result = SendPayload(client->socket, &GameEntryTransit, sizeof(struct HDLGameEntryTransit))) != sizeof(struct HDLGameEntryTransit))
+					break;
+			}
 		}
 	}
 	else
 	{
-		result = -ENOENT;
-		return SendResponse(client->socket, result, NULL, 0);
+		result = SendResponse(client->socket, -ENOENT, NULL, 0);
 	}
 
-	return 0;
+	UnlockCentralHDLGameList();
+
+	return result;
 }
 
 static int ReadGameListEntry(struct ClientData *client, void *buffer, unsigned int length)
@@ -1030,6 +1109,8 @@ static int ReadGameListEntry(struct ClientData *client, void *buffer, unsigned i
 	struct HDLGameEntryTransit GameEntryTransit;
 	void *RespPayload;
 	unsigned int RespPayloadLength;
+
+	LockCentralHDLGameList();
 
 	RespPayload=NULL;
 	RespPayloadLength=0;
@@ -1050,6 +1131,8 @@ static int ReadGameListEntry(struct ClientData *client, void *buffer, unsigned i
 		result=0;
 	}
 	else result=-ENOENT;
+
+	UnlockCentralHDLGameList();
 
 	return SendResponse(client->socket, result, RespPayload, RespPayloadLength);
 }
@@ -1090,6 +1173,9 @@ static int UpdateGameListEntry(struct ClientData *client, void *buffer, unsigned
 	GameTitle[GAME_TITLE_MAX_LEN] = '\0';
 	result=UpdateGameInstallation(((struct HDLGameEntryTransit*)buffer)->PartName, GameTitle, ((struct HDLGameEntryTransit*)buffer)->CompatibilityModeFlags, ((struct HDLGameEntryTransit*)buffer)->TRType, ((struct HDLGameEntryTransit*)buffer)->TRMode, ((struct HDLGameEntryTransit*)buffer)->DiscType);
 
+	if (result >= 0)
+		NeedReloadGameList = 1;
+
 	return SendResponse(client->socket, result, NULL, 0);
 }
 
@@ -1100,6 +1186,9 @@ static int DeleteGameEntry(struct ClientData *client, void *buffer, unsigned int
 
 	snprintf(PartName, sizeof(PartName), "hdd0:%s", buffer);
 	result = RemoveGameInstallation(PartName);
+
+	if (result >= 0)
+		NeedReloadGameList = 1;
 
 	return SendResponse(client->socket, result, NULL, 0);
 }

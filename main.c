@@ -87,8 +87,6 @@ extern unsigned char NETMAN_irx[];
 extern unsigned int size_NETMAN_irx;
 #endif
 
-static unsigned char PadArea[2][256] ALIGNED(64);
-
 extern void *_gp;
 extern GSGLOBAL *gsGlobal;
 extern GSTEXTURE BackgroundTexture;
@@ -104,7 +102,7 @@ struct SystemInitThreadParam{
 static void LoadHDDModules(void)
 {
 	static const char HDD_args[]="-o\0""4""\0""-n\0""128";
-	static const char PFS_args[]="-m\0""2""\0""-n\0""12";
+	static const char PFS_args[]="-m\0""2""\0""-o\0""4""-n\0""12";
 
 	SifExecModuleBuffer(ATAD_irx, size_ATAD_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(HDD_irx, size_HDD_irx, sizeof(HDD_args), HDD_args, NULL);
@@ -113,13 +111,6 @@ static void LoadHDDModules(void)
 
 
 static void SystemInitThread(void *arg){
-#ifdef ENABLE_NETWORK_SUPPORT
-	char ip_address_str[16], subnet_mask_str[16], gateway_str[16];
-	struct ip4_addr IP, NM, GW;
-	const char *SmapArgs;
-	int SmapArgsLen, EthernetLinkMode;
-#endif
-
 	SifExecModuleBuffer(MCSERV_irx, size_MCSERV_irx, 0, NULL, NULL);
 
 	if(((struct SystemInitThreadParam*)arg)->RuntimeData->BootDeviceID!=BOOT_DEVICE_HDD){
@@ -135,14 +126,18 @@ static void SystemInitThread(void *arg){
 #ifdef ENABLE_NETWORK_SUPPORT
 	SifExecModuleBuffer(NETMAN_irx, size_NETMAN_irx, 0, NULL, NULL);
 	SifExecModuleBuffer(SMAP_irx, size_SMAP_irx, 0, NULL, NULL);
+
+	//Initialization will be done in the background. The usability of the network interface will be confirmed later on, with ethValidate().
+	ethInit();
 #endif
 
 	SifExecModuleBuffer(HDLFS_irx, size_HDLFS_irx, 0, NULL, NULL);
 
-	padPortOpen(0, 0, PadArea[0]);
-	padPortOpen(1, 0, PadArea[1]);
-
 	mcInit(MC_TYPE_XMC);
+	NetManInit();
+
+	//Load the game list, so that both the UI and the server can access it immediately after initialization completes.
+	LoadHDLGameList(NULL);
 
 	SignalSema(((struct SystemInitThreadParam*)arg)->SystemInitSema);
 	ExitDeleteThread();
@@ -181,9 +176,7 @@ static void DeinitServices(void)
 {
 	sceCdInit(SCECdEXIT);
 
-	padPortClose(0, 0);
-	padPortClose(1, 0);
-	padEnd();
+	DeinitPads();
 
 	DeleteSema(RuntimeData.InstallationLockSema);
 	DisableIntc(kINTC_VBLANK_START);
@@ -283,7 +276,14 @@ int main(int argc, char *argv[])
 #endif
 
 	sceCdInit(SCECdINoD);
-	padInit(0);
+	InitPads();
+
+	//Initialize poweroff library.
+	poweroffInit();
+
+	//Set poweroff callback function
+	//For now, we have no callback. Not setting a callback will also disable automatic poweroff.
+	//poweroffSetCallback(&poweroffCallback, NULL);
 
 	if(RuntimeData.BootDeviceID == BOOT_DEVICE_HDD)
 		LoadHDDModules();
@@ -315,19 +315,12 @@ int main(int argc, char *argv[])
 	DeleteSema(InitThreadParam.SystemInitSema);
 	free(SysInitThreadStack);
 
-	//Initialize poweroff library.
-	poweroffInit();
-
-	//Set poweroff callback function
-	//For now, we have no callback. Not setting a callback will not enable automatic poweroff.
-	//poweroffSetCallback(&poweroffCallback, NULL);
-
 	SifLoadFileExit();
 	SifExitIopHeap();
 
 	DisplayFlashStatusUpdate(SYS_UI_MSG_CONNECTING);
 #ifdef ENABLE_NETWORK_SUPPORT
-	ethInit();
+	ethValidate();
 	InitializeStartServer();
 #endif
 

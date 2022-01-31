@@ -94,6 +94,7 @@ int GetHDLGameList(struct HDLGameEntry **GameList){
 void FreeHDLGameList(void){
 	FreeHDLGameListInBuffer(CentralGameList);
 	NumGamesInCentralGameList=0;
+	CentralGameList = NULL;
 }
 
 static int LoadHDLGameListIntoBuffer(struct HDLGameEntry **GameList){
@@ -106,17 +107,20 @@ static int LoadHDLGameListIntoBuffer(struct HDLGameEntry **GameList){
 	DEBUG_PRINTF("Loading game list...\n");
 
 	NumGames=0;
-	first=LinkedList=NULL;
+	first=NULL;
+	LinkedList=NULL;
 	*GameList=NULL;
 	result=0;
 	if((fd=fileXioDopen("hdd0:"))>=0){
 		while(fileXioDread(fd, &dirent)>0){
 			/* The APA driver stores the partition type in the mode field. */
 			if(dirent.stat.mode==HDL_FS_MAGIC && !(dirent.stat.attr&APA_FLAG_SUB)){
-				if(RetrieveGameInstallationSector(dirent.stat.private_5, dirent.name, &GameEntry)>=0){
+				if(RetrieveGameInstallationSector(dirent.stat.private_5, dirent.name, &GameEntry)==0){
 					/* The head of the list needs to be formed first. */
-					if(first==NULL) first=LinkedList=malloc(sizeof(struct HDLGameLinkedListNode));
-					else{
+					if(first==NULL) {
+						LinkedList=malloc(sizeof(struct HDLGameLinkedListNode));
+						first=LinkedList;
+					} else {
 						LinkedList->next=malloc(sizeof(struct HDLGameLinkedListNode));
 						LinkedList=LinkedList->next;
 					}
@@ -152,6 +156,5 @@ static int LoadHDLGameListIntoBuffer(struct HDLGameEntry **GameList){
 
 static void FreeHDLGameListInBuffer(struct HDLGameEntry *GameList){
 	if(GameList!=NULL) free(GameList);
-	GameList=NULL;
 }
 

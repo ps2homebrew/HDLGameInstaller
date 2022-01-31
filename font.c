@@ -1,6 +1,6 @@
 /*	Font-drawing engine
-	Version:	1.20 (gsKit version, with dual-font support)
-	Last updated:	2018/06/02	*/
+	Version:	1.22 (gsKit version)
+	Last updated:	2018/12/08	*/
 
 #include <malloc.h>
 #include <string.h>
@@ -64,6 +64,11 @@ extern GSGLOBAL *gsGlobal;
 		YXXX
 		YXXX	*/
 
+struct FontGlyphSlotInfo {
+	struct FontGlyphSlot *slot;
+	u32 vram;	//Address of the atlas buffer in VRAM
+};
+
 struct FontGlyphSlot{
 	wint_t character;
 	unsigned short int VramPageX, VramPageY;
@@ -89,7 +94,8 @@ struct FontAtlas{
 typedef struct Font{
 	FT_Face FTFace;
 	GSTEXTURE Texture;
-	unsigned int IsLoaded;
+	unsigned short int IsLoaded;
+	unsigned short int IsInit;
 	struct FontAtlas atlas[FNT_MAX_ATLASES];
 } Font_t;
 
@@ -103,49 +109,44 @@ static int ResetThisFont(GSGLOBAL *gsGlobal, Font_t *font)
 	unsigned short int i;
 	int result;
 
-	if(font->IsLoaded)
+	result=0;
+
+	font->Texture.VramClut = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(16, 16, font->Texture.ClutPSM), GSKIT_ALLOC_USERBUFFER);
+
+	if(font->Texture.VramClut != GSKIT_ALLOC_ERROR)
 	{
-		result=0;
+		gsKit_texture_send_inline(gsGlobal,
+			font->Texture.Clut,
+			16,
+			16,
+			font->Texture.VramClut,
+			font->Texture.ClutPSM,
+			1,
+			GS_CLUT_PALLETE);
 
-		font->Texture.VramClut = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(16, 16, font->Texture.ClutPSM), GSKIT_ALLOC_USERBUFFER);
-
-		if(font->Texture.VramClut != GSKIT_ALLOC_ERROR)
+		for(i=0,atlas=font->atlas; i<FNT_MAX_ATLASES; i++,atlas++)
 		{
-			gsKit_texture_send_inline(gsGlobal,
-				font->Texture.Clut,
-				16,
-				16,
-				font->Texture.VramClut,
-				font->Texture.ClutPSM,
-				1,
-				GS_CLUT_PALLETE);
-
-			for(i=0,atlas=font->atlas; i<FNT_MAX_ATLASES; i++,atlas++)
+			atlas->frontier[0].width = 0;
+			atlas->frontier[0].height = 0;
+			atlas->frontier[1].width = 0;
+			atlas->frontier[1].height = 0;
+			atlas->vram = GSKIT_ALLOC_ERROR;
+			if(atlas->GlyphSlot != NULL)
 			{
-				atlas->frontier[0].width = 0;
-				atlas->frontier[0].height = 0;
-				atlas->frontier[1].width = 0;
-				atlas->frontier[1].height = 0;
-				atlas->vram = GSKIT_ALLOC_ERROR;
-				if(atlas->GlyphSlot != NULL)
-				{
-					free(atlas->GlyphSlot);
-					atlas->GlyphSlot = NULL;
-				}
-				if(atlas->buffer != NULL)
-				{
-					free(atlas->buffer);
-					atlas->buffer = NULL;
-				}
-				atlas->NumGlyphs = 0;
+				free(atlas->GlyphSlot);
+				atlas->GlyphSlot = NULL;
 			}
-		} else {
-			printf("Font: error - unable to allocate VRAM for CLUT.\n");
-			result = -1;
+			if(atlas->buffer != NULL)
+			{
+				free(atlas->buffer);
+				atlas->buffer = NULL;
+			}
+			atlas->NumGlyphs = 0;
 		}
+	} else {
+		printf("Font: error - unable to allocate VRAM for CLUT.\n");
+		result = -1;
 	}
-	else
-		result = 0;
 
 	return result;
 }
@@ -182,8 +183,10 @@ static int InitFontSupportCommon(GSGLOBAL *gsGlobal, Font_t *font)
 
 		gsKit_setup_tbw(&font->Texture);
 
+		if(!font->IsInit)
+			ResetThisFont(gsGlobal, font);
 		font->IsLoaded=1;
-		ResetThisFont(gsGlobal, font);
+		font->IsInit=1;
 	}
 
 	return result;
@@ -192,9 +195,6 @@ static int InitFontSupportCommon(GSGLOBAL *gsGlobal, Font_t *font)
 int FontInit(GSGLOBAL *gsGlobal, const char *FontFile)
 {
 	int result;
-
-	memset(&GS_FTFont, 0, sizeof(Font_t));
-	memset(&GS_sub_FTFont, 0, sizeof(Font_t));
 
 	if((result=FT_Init_FreeType(&FTLibrary))==0)
 	{
@@ -211,9 +211,6 @@ int FontInit(GSGLOBAL *gsGlobal, const char *FontFile)
 int FontInitWithBuffer(GSGLOBAL *gsGlobal, void *buffer, unsigned int size)
 {
 	int result;
-
-	memset(&GS_FTFont, 0, sizeof(Font_t));
-	memset(&GS_sub_FTFont, 0, sizeof(Font_t));
 
 	if((result=FT_Init_FreeType(&FTLibrary))==0)
 	{
@@ -238,15 +235,25 @@ static void UnloadFont(Font_t *font)
 	for(i=0,atlas=font->atlas; i<FNT_MAX_ATLASES; i++,atlas++)
 	{
 		if(atlas->buffer!=NULL)
+		{
 			free(atlas->buffer);
+			atlas->buffer = NULL;
+		}
 		if(atlas->GlyphSlot!=NULL)
+		{
 			free(atlas->GlyphSlot);
+			atlas->GlyphSlot = NULL;
+		}
+	}
+	font->atlas->NumGlyphs = 0;
+
+	if(font->Texture.Clut != NULL)
+	{
+		free(font->Texture.Clut);
+		font->Texture.Clut = NULL;
 	}
 
-	if(font->Texture.Clut!=NULL)
-		free(font->Texture.Clut);
-
-	memset(font, 0, sizeof(Font_t));
+	font->IsLoaded = 0;
 }
 
 int AddSubFont(GSGLOBAL *gsGlobal, const char *FontFile)
@@ -473,62 +480,77 @@ static struct FontGlyphSlot *UploadGlyph(GSGLOBAL *gsGlobal, Font_t *font, wint_
 	return GlyphSlot;
 }
 
+static int GetGlyph(GSGLOBAL *gsGlobal, Font_t *font, wint_t character, int DrawMissingGlyph, struct FontGlyphSlotInfo *glyphInfo)
+{
+	int i, slot;
+	struct FontAtlas *atlas;
+	struct FontGlyphSlot *glyphSlot;
+	FT_UInt glyphIndex;
+
+	//Scan through all uploaded glyph slots.
+	for(i=0,atlas=font->atlas; i<FNT_MAX_ATLASES; i++,atlas++)
+	{
+		for(slot=0; slot < atlas->NumGlyphs; slot++)
+		{
+			if(atlas->GlyphSlot[slot].character==character)
+			{
+				glyphInfo->slot = &atlas->GlyphSlot[slot];
+				glyphInfo->vram = atlas->vram;
+				return 0;
+			}
+		}
+	}
+
+	//Not in VRAM? Upload it.
+	if((glyphIndex = FT_Get_Char_Index(font->FTFace, character)) != 0 || DrawMissingGlyph)
+	{
+		if(FT_Load_Glyph(font->FTFace, glyphIndex, FT_LOAD_RENDER))
+			return -1;
+
+		if((glyphSlot = UploadGlyph(gsGlobal, font, character, font->FTFace->glyph, &atlas)) == NULL)
+			return -1;
+
+//		printf("Uploading %c, %u, %u\n", character, GlyphSlot->VramPageX, GlyphSlot->VramPageY);
+
+		glyphInfo->slot = glyphSlot;
+		glyphInfo->vram = atlas->vram;
+		return 0;
+	} else //Otherwise, the glyph is missing from font
+		return 1;
+
+	return -1;
+}
+
 static int DrawGlyph(GSGLOBAL *gsGlobal, Font_t *font, wint_t character, short int x, short int y, short int z, float scale, u64 colour, int DrawMissingGlyph, short int *width)
 {
-	FT_GlyphSlot FT_GlyphSlot;
-	struct FontGlyphSlot *GlyphSlot;
+	struct FontGlyphSlot *glyphSlot;
+	struct FontGlyphSlotInfo glyphInfo;
 	struct FontAtlas *atlas;
 	unsigned short int i, slot;
 	short int XCoordinates, YCoordinates;
 	FT_UInt GlyphIndex;
+	int result;
 
 	if(font->IsLoaded)
 	{
-		FT_GlyphSlot = font->FTFace->glyph;
+		if ((result = GetGlyph(gsGlobal, font, character, DrawMissingGlyph, &glyphInfo)) != 0)
+			return result;
 
-		//Scan through all uploaded glyph slots.
-		for(i=0,atlas=font->atlas,GlyphSlot=NULL; i<FNT_MAX_ATLASES; i++,atlas++)
-		{
-			for(slot=0; slot < atlas->NumGlyphs; slot++)
-			{
-				if(atlas->GlyphSlot[slot].character==character)
-				{
-					GlyphSlot=&atlas->GlyphSlot[slot];
-					goto atlas_selected;
-				}
-			}
-		}
+		glyphSlot = glyphInfo.slot;
+		font->Texture.Vram = glyphInfo.vram;
 
-		if(GlyphSlot == NULL)
-		{	//Not in VRAM? Upload it.
-			if((GlyphIndex = FT_Get_Char_Index(font->FTFace, character)) != 0 || DrawMissingGlyph)
-			{
-				if(FT_Load_Glyph(font->FTFace, GlyphIndex, FT_LOAD_RENDER))
-					return -1;
-
-				if((GlyphSlot = UploadGlyph(gsGlobal, font, character, FT_GlyphSlot, &atlas)) == NULL)
-					return -1;
-
-		//		printf("Uploading %c, %u, %u\n", character, GlyphSlot->VramPageX, GlyphSlot->VramPageY);
-			} else	//Glyph is missing from font
-				return 1;
-		}
-
-atlas_selected:
-		font->Texture.Vram=atlas->vram;
-
-		YCoordinates=y+(FNT_CHAR_HEIGHT-GlyphSlot->top)*scale;
-		XCoordinates=x+GlyphSlot->left*scale;
+		YCoordinates=y+(FNT_CHAR_HEIGHT-glyphSlot->top)*scale;
+		XCoordinates=x+glyphSlot->left*scale;
 
 		//To centre the texels, add 0.5 to the coordinates.
 		gsKit_prim_sprite_texture(gsGlobal, &font->Texture,
 						XCoordinates, YCoordinates,									//x1, y1
-						GlyphSlot->VramPageX + 0.5f, GlyphSlot->VramPageY + 0.5f,					//u1, v1
-						XCoordinates+GlyphSlot->width*scale, YCoordinates+GlyphSlot->height*scale,			//x2, y2
-						GlyphSlot->VramPageX+GlyphSlot->width + 0.5f, GlyphSlot->VramPageY+GlyphSlot->height + 0.5f,	//u2, v2
+						glyphSlot->VramPageX + 0.5f, glyphSlot->VramPageY + 0.5f,					//u1, v1
+						XCoordinates+glyphSlot->width*scale, YCoordinates+glyphSlot->height*scale,			//x2, y2
+						glyphSlot->VramPageX+glyphSlot->width + 0.5f, glyphSlot->VramPageY+glyphSlot->height + 0.5f,	//u2, v2
 						z, colour);
 
-		*width = GlyphSlot->advance_x * scale;
+		*width = glyphSlot->advance_x * scale;
 	} else	//Not loaded
 		return -1;
 
@@ -594,32 +616,31 @@ void FontPrintf(GSGLOBAL *gsGlobal, short int x, short int y, short int z, float
 	return FontPrintfWithFeedback(gsGlobal, x, y, z, scale, colour, string, NULL, NULL);
 }
 
-static int GetGlyphWidth(Font_t *font, wint_t character, int DrawMissingGlyph)
+static int GetGlyphWidth(GSGLOBAL *gsGlobal, Font_t *font, wint_t character, int DrawMissingGlyph)
 {
-	FT_UInt index;
-	FT_Fixed advance;
+	struct FontGlyphSlotInfo glyphInfo;
+	int result;
 
 	if(font->IsLoaded)
-	{
-		if (((index = FT_Get_Char_Index(font->FTFace, character)) != 0) || DrawMissingGlyph)
-		{
-			if(FT_Get_Advance(font->FTFace, index, FT_LOAD_DEFAULT, &advance) == 0)
-				return(advance >> 16);
-		}
+	{	//Calling FT_Get_Advance is slow when I/O is slow, hence a cache is required. Here, the atlas is used as a cache.
+		if ((result = GetGlyph(gsGlobal, font, character, DrawMissingGlyph, &glyphInfo)) != 0)
+			return result;
+
+		return glyphInfo.slot->advance_x;
 	}
 
 	return 0;
 }
 
-int FontGetGlyphWidth(wint_t character)
+int FontGetGlyphWidth(GSGLOBAL *gsGlobal, wint_t character)
 {
 	int width;
 
-	if((width = GetGlyphWidth(&GS_FTFont, character, 0)) == 0)
+	if((width = GetGlyphWidth(gsGlobal, &GS_FTFont, character, 0)) == 0)
 	{
-		if((width = GetGlyphWidth(&GS_sub_FTFont, character, 0)) == 0)
+		if((width = GetGlyphWidth(gsGlobal, &GS_sub_FTFont, character, 0)) == 0)
 		{
-			width = GetGlyphWidth(&GS_FTFont, character, 1);
+			width = GetGlyphWidth(gsGlobal, &GS_FTFont, character, 1);
 		}
 	}
 

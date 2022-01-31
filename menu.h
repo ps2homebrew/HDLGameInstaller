@@ -31,6 +31,7 @@
 #define BTN_FNT_CHAR_WIDTH	8
 
 #define UPDATE_INTERVAL		300	//Update interval: 5s (5 * 60FPS = 300)
+#define NETSTAT_UPDATE_INTERVAL	600	//Update interval: 10s (10 * 60FPS = 600)
 
 void MainMenu(void);
 void RedrawLoadingScreen(unsigned int frame);
