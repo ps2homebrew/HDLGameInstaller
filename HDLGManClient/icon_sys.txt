@@ -1,0 +1,18 @@
+PS2X
+title0 = 123
+title1 = 
+bgcola = 64
+bgcol0 = 82,27,97
+bgcol1 = 127,85,70
+bgcol2 = 97,45,88
+bgcol3 = 127,65,79
+lightdir0 = 10.6422,-8.9692,-18.6699
+lightdir1 = -5.5809,-23.0448,21.7609
+lightdir2 = -19.7401,-21.2052,-7.6639
+lightcolamb = 38,38,38
+lightcol0 = 38,38,38
+lightcol1 = 38,38,38
+lightcol2 = 38,38,38
+uninstallmes0 = This will delete the game.
+uninstallmes1 = 
+uninstallmes2 = 

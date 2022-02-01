@@ -1,0 +1,11 @@
+*.sdf
+*.suo
+*.ipch
+*.aps
+*.filters
+*.user
+*.exe
+*.log
+.vs
+Debug
+Release
