@@ -1,12 +1,13 @@
-struct HDLGameEntry{
-	char PartName[33];
-	char DiscID[11];
-	u8 CompatibilityModeFlags;
-	u8 TRType;
-	u8 TRMode;
-	u8 DiscType;
-	u32 sectors;
-	char GameTitle[GAME_TITLE_MAX_LEN_BYTES+1];
+struct HDLGameEntry
+{
+    char PartName[33];
+    char DiscID[11];
+    u8 CompatibilityModeFlags;
+    u8 TRType;
+    u8 TRMode;
+    u8 DiscType;
+    u32 sectors;
+    char GameTitle[GAME_TITLE_MAX_LEN_BYTES + 1];
 };
 
 /* Function prototypes */

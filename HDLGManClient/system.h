@@ -19,12 +19,11 @@ unsigned long int diffmsec(unsigned long int d1, unsigned long int d2);
 void displayAlertMsg(const wchar_t *message, ...);
 
 #ifndef O_RDONLY
-	#define O_RDONLY	1
-	#define O_WRONLY	2
-	#define O_RDWR		3
+#define O_RDONLY 1
+#define O_WRONLY 2
+#define O_RDWR   3
 
-	#define O_CREAT		00100
-	#define O_TRUNC		01000
-
-	#define O_APPEND	02000    /* set append mode */
+#define O_CREAT  00100
+#define O_TRUNC  01000
+#define O_APPEND 02000 /* set append mode */
 #endif

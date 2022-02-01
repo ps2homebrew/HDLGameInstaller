@@ -2,7 +2,7 @@ How this driver is designed to be used for creating game partitions:
 --------------------------------------------------------------------
 
 1. A partition is created with the accompanying modified PS2HDD module. If the partition is not large enough to hold the entire game, create sufficient sub-partitions to store the entire game.
-	Note: The size of the sub-partitions is expected to be of the same size as the main partition, with the exception of the last sub partition. All partitions are expected to be of the largest allowable size, except for the last partition (Which may be smaller).
+	Note: The size of the sub-partitions is expected to be of the same size as the main partition, with the exception of the last subpartition. All partitions are expected to be of the largest allowable size, except for the last partition (Which may be smaller).
 2. mount the created partition with HDLFS.
 	HDLFS shall allocate a handle for future I/O access to the partition.
 3. Format the partition, specifying the game's data.

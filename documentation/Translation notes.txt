@@ -8,7 +8,7 @@ The PlayStation universally supports 8 languages:
 7. Dutch
 8. Portuguese
 
-These languages are also supported on certain models (localized fat PS2s and all slimlines), but aren't recognized by the System Configuration (SCF) library that Sony uses in games:
+These languages are also supported on certain models (localized fat PS2s and all slimline), but aren't recognized by the System Configuration (SCF) library that Sony uses in games:
 1. Russian
 2. Korean
 3. Traditional Chinese.

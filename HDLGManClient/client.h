@@ -1,8 +1,8 @@
-int SendCmdPacket(const void *buffer, unsigned int command, int NumBytes);	//Command
-int SendData(const void *buffer, int NumBytes);	//Data
-int GetResponse(void *buffer, int NumBytes);	//Command
-int GetPayload(void *buffer, int NumBytes);		//Command
-int RecvData(void *buffer, int NumBytes);		//Data
+int SendCmdPacket(const void *buffer, unsigned int command, int NumBytes); // Command
+int SendData(const void *buffer, int NumBytes);                            // Data
+int GetResponse(void *buffer, int NumBytes);                               // Command
+int GetPayload(void *buffer, int NumBytes);                                // Command
+int RecvData(void *buffer, int NumBytes);                                  // Data
 int ExchangeHandshakesWithServer(void);
 int DisconnectSocketConnection(void);
 

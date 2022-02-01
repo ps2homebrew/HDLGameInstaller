@@ -1,5 +1,6 @@
-struct IconModelAnimRuntimeData{
-	struct Vector **vertices;
+struct IconModelAnimRuntimeData
+{
+    struct Vector **vertices;
 };
 
 void ResetIconModelRuntimeData(const struct PS2IconModel *IconModel, struct IconModelAnimRuntimeData *IconRuntimeData);

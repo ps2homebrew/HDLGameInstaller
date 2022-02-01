@@ -1,5 +1,5 @@
-#define UNICODE_REPLACEMENT_CHAR	0xFFFD
-#define SJIS_REPLACEMENT_CHAR		0x0080
+#define UNICODE_REPLACEMENT_CHAR 0xFFFD
+#define SJIS_REPLACEMENT_CHAR    0x0080
 
 int SetSJISToUnicodeLookupTable(void *table, unsigned int TableLength);
 

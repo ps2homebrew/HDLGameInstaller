@@ -16,96 +16,100 @@
 #include "system.h"
 #include "DeviceSupport.h"
 
-static int DevicePollingThreadID=-1, MainThreadID=-1;
+static int DevicePollingThreadID = -1, MainThreadID = -1;
 static volatile int DevicePollingThreadCommand;
-static void *DevicePollingThreadStack=NULL;
+static void *DevicePollingThreadStack = NULL;
 
-enum DEVICE_POLLING_THREAD_COMMANDS{
-	DEVICE_POLLING_THREAD_CMD_NONE=0,
-	DEVICE_POLLING_THREAD_CMD_STOP
+enum DEVICE_POLLING_THREAD_COMMANDS {
+    DEVICE_POLLING_THREAD_CMD_NONE = 0,
+    DEVICE_POLLING_THREAD_CMD_STOP
 };
 
 static int McUnitStatus[2];
 static int MassUnitStatus[1];
 
-static int IsMcUnitReady(int unit){
-	int type, free, format, result;
+static int IsMcUnitReady(int unit)
+{
+    int type, free, format, result;
 
-	type=MC_TYPE_NONE;
-	if(mcGetInfo(unit, 0, &type, &free, &format)==0){
-		mcSync(0, NULL, &result);
+    type = MC_TYPE_NONE;
+    if (mcGetInfo(unit, 0, &type, &free, &format) == 0) {
+        mcSync(0, NULL, &result);
 
-		result=(type==MC_TYPE_PS2 && format==MC_FORMATTED)?1:0;
-	}
-	else result=0;
+        result = (type == MC_TYPE_PS2 && format == MC_FORMATTED) ? 1 : 0;
+    } else
+        result = 0;
 
-	return result;
+    return result;
 }
 
-static int IsMassUnitReady(int unit){
-	return 1;
+static int IsMassUnitReady(int unit)
+{
+    return 1;
 }
 
-static void DevicePollingThread(void){
-	int done;
+static void DevicePollingThread(void)
+{
+    int done;
 
-	done=0;
-	while(!done){
-		//Process commands.
-		if(DevicePollingThreadCommand!=DEVICE_POLLING_THREAD_CMD_NONE){
-			if(DevicePollingThreadCommand==DEVICE_POLLING_THREAD_CMD_STOP){
-				WakeupThread(MainThreadID);
-				done=1;
-				continue;
-			}
+    done = 0;
+    while (!done) {
+        // Process commands.
+        if (DevicePollingThreadCommand != DEVICE_POLLING_THREAD_CMD_NONE) {
+            if (DevicePollingThreadCommand == DEVICE_POLLING_THREAD_CMD_STOP) {
+                WakeupThread(MainThreadID);
+                done = 1;
+                continue;
+            }
 
-			DevicePollingThreadCommand=DEVICE_POLLING_THREAD_CMD_NONE;
-		}
+            DevicePollingThreadCommand = DEVICE_POLLING_THREAD_CMD_NONE;
+        }
 
-		//Update the status of all units of all devices.
-		MassUnitStatus[0]=IsMassUnitReady(0);
-		McUnitStatus[0]=IsMcUnitReady(0);
-		McUnitStatus[1]=IsMcUnitReady(1);
-	}
+        // Update the status of all units of all devices.
+        MassUnitStatus[0] = IsMassUnitReady(0);
+        McUnitStatus[0]   = IsMcUnitReady(0);
+        McUnitStatus[1]   = IsMcUnitReady(1);
+    }
 }
 
-int StartDevicePollingThread(void){
-	DevicePollingThreadCommand=DEVICE_POLLING_THREAD_CMD_NONE;
-	MainThreadID=GetThreadId();
+int StartDevicePollingThread(void)
+{
+    DevicePollingThreadCommand = DEVICE_POLLING_THREAD_CMD_NONE;
+    MainThreadID               = GetThreadId();
 
-	DevicePollingThreadStack=malloc(0x800);
-	return(DevicePollingThreadID=SysCreateThread(&DevicePollingThread, DevicePollingThreadStack, 0x800, NULL, 0x78));
+    DevicePollingThreadStack = malloc(0x800);
+    return (DevicePollingThreadID = SysCreateThread(&DevicePollingThread, DevicePollingThreadStack, 0x800, NULL, 0x78));
 }
 
-int StopDevicePollingThread(void){
-	DevicePollingThreadCommand=DEVICE_POLLING_THREAD_CMD_STOP;
-	SleepThread();	//Wait for acknowledgement.
+int StopDevicePollingThread(void)
+{
+    DevicePollingThreadCommand = DEVICE_POLLING_THREAD_CMD_STOP;
+    SleepThread(); // Wait for acknowledgement.
 
-	if(DevicePollingThreadID>=0){
-		TerminateThread(DevicePollingThreadID);
-		DeleteThread(DevicePollingThreadID);
-		DevicePollingThreadID=-1;
-	}
+    if (DevicePollingThreadID >= 0) {
+        TerminateThread(DevicePollingThreadID);
+        DeleteThread(DevicePollingThreadID);
+        DevicePollingThreadID = -1;
+    }
 
-	if(DevicePollingThreadStack!=NULL){
-		free(DevicePollingThreadStack);
-		DevicePollingThreadStack=NULL;
-	}
+    if (DevicePollingThreadStack != NULL) {
+        free(DevicePollingThreadStack);
+        DevicePollingThreadStack = NULL;
+    }
 
-	return 0;
+    return 0;
 }
 
-int GetIsDeviceUnitReady(const char *device, int unit){
-	int result;
+int GetIsDeviceUnitReady(const char *device, int unit)
+{
+    int result;
 
-	if(strcmp(device, "mc")==0){
-		result=McUnitStatus[unit];
-	}
-	else if(strcmp(device, "mass")==0){
-		result=MassUnitStatus[unit];
-	}
-	else result=-ENODEV;
+    if (strcmp(device, "mc") == 0) {
+        result = McUnitStatus[unit];
+    } else if (strcmp(device, "mass") == 0) {
+        result = MassUnitStatus[unit];
+    } else
+        result = -ENODEV;
 
-	return result;
+    return result;
 }
-
