@@ -19,7 +19,7 @@ static int DoSend(SOCKET s, void *buffer, int length)
 
     for (ptr = (char *)buffer, remaining = length, result = 0; remaining > 0; remaining -= result, ptr += result) {
         if ((result = send(s, ptr, remaining, 0)) <= 0) {
-            //	rcode = WSAGetLastError();
+            // rcode  = WSAGetLastError();
             result = -EEXTCONNLOST;
             break;
         }
@@ -69,7 +69,7 @@ static int DoRecv(SOCKET s, void *buffer, int length)
         FD_SET(s, &readFDs);
         if (select(s + 1, &readFDs, NULL, NULL, &timeout) == 1) {
             if ((result = recv(s, ptr, remaining, 0)) <= 0) {
-                //	rcode = WSAGetLastError();
+                // rcode  = WSAGetLastError();
                 result = -EEXTCONNLOST;
                 break;
             }
@@ -262,28 +262,29 @@ int ExchangeHandshakesWithServer(void)
 {
     int version, result;
 
-    //	printf("Exchanging handshakes...");
+    // printf("Exchanging handshakes...");
 
     version = -1;
     if ((result = SendCmdPacket(NULL, HDLGMAN_SERVER_GET_VERSION, 0)) >= 0) {
         if ((result = GetResponse(&version, sizeof(version))) == 0) {
             if (version != HDLGMAN_SERVER_VERSION) {
-                //			printf("Error: Unsupported server version - 0x%04x\n", version);
+                // printf("Error: Unsupported server version - 0x%04x\n", version);
                 result = -EINVAL;
             } else {
                 /* Now, send the client's version. */
                 version = HDLGMAN_CLIENT_VERSION;
                 SendCmdPacket(&version, HDLGMAN_CLIENT_SEND_VERSION, sizeof(version));
                 if ((result = GetResponse(NULL, 0)) != 0) {
-                    //				printf("Server rejected connection, code: 0x%04x\n", result);
+                    // printf("Server rejected connection, code: 0x%04x\n", result);
+                } else {
+                    // printf("done\n");
                 }
-                //			else printf("done\n");
             }
         } else {
-            //		printf("Error: Unable to retrieve the server's version number: %d\n", result);
+            // printf("Error: Unable to retrieve the server's version number: %d\n", result);
         }
     } else {
-        //	printf("Error: Unable to send SERVER_GET_VERSION\n");
+        // printf("Error: Unable to send SERVER_GET_VERSION\n");
     }
 
     return result;

@@ -19,8 +19,8 @@ int ParsePS2CNF(void *discimg, char *DiscID, char *StartupFilename, unsigned cha
     if (!(cnflsn = GetFileLSN("SYSTEM.CNF;1", discimg, sectortype, &cnf_size)))
         return 0;
 #ifdef DEBUG_MODE
-    printf("Done loading SYSTEM.CNF LSN.\n	\
-				Now parsing SYSTEM.CNF...\n");
+    printf("Done loading SYSTEM.CNF LSN.\n\
+                Now parsing SYSTEM.CNF...\n");
 #endif
 
     cnf = malloc(cnf_size + 1);
@@ -352,7 +352,7 @@ int GetDiscInfo(unsigned char source, void *discImg, u32 *nSectorsLayer0, u32 *n
             memcpy(nSectorsLayer1, &sectorBuff[80], 4);
         } else {
             if (*nSectorsLayer0 != (seekFile(discImg, 0, SEEK_END) / ((*discType == 0xFF) ? 2048 : 2352))) {
-                /*	Somehow, the number of sectors indicated within the ISO9660 filesystem does not match the size of the disc image.
+                /*    Somehow, the number of sectors indicated within the ISO9660 filesystem does not match the size of the disc image.
                     There may be trailing data, so calculate the number of sectors based on the disc image file's size instead. */
                 *nSectorsLayer0 = (u32)seekFile(discImg, 0, SEEK_END) / ((*discType == 0xFF) ? 2048 : 2352);
             }
@@ -374,9 +374,9 @@ static int RawReadSectors(void *discImg, unsigned char sectortype, u32 lsn, unsi
     sectorsToRead = sectors;
     bufferPtr     = buffer;
 
-    /* ISO9660 MODE 1;		1 sector = 12 bytes "sync" + 4 bytes CRC + 2048 bytes data + 8 bytes reserved space + 280 bytes parity error checking codes. */
-    /* Skip the MODE2/XA header;	1 sector = 12 bytes "sync" + 4 bytes CRC + 8 bytes subchannel + 2048 bytes data + 280 bytes parity error checking codes.  */
-    /* "Headerless" disc image;	1 sector = 2048 bytes data. */
+    /* ISO9660 MODE 1;        1 sector = 12 bytes "sync" + 4 bytes CRC + 2048 bytes data + 8 bytes reserved space + 280 bytes parity error checking codes. */
+    /* Skip the MODE2/XA header;    1 sector = 12 bytes "sync" + 4 bytes CRC + 8 bytes subchannel + 2048 bytes data + 280 bytes parity error checking codes.  */
+    /* "Headerless" disc image;    1 sector = 2048 bytes data. */
 
     if (current_lsn != lsn) { /* Seek only when required. */
         if ((sectortype == 1) || (sectortype == 2)) {
@@ -410,9 +410,9 @@ int ReadSectors(void *discImg, unsigned char sectortype, u32 lsn, unsigned int s
     sectorsToRead = sectors;
     bufferPtr     = buffer;
 
-    /* ISO9660 MODE 1;		1 sector = 12 bytes "sync" + 4 bytes CRC + 2048 bytes data + 8 bytes reserved space + 280 bytes parity error checking codes. */
-    /* Skip the MODE2/XA header;	1 sector = 12 bytes "sync" + 4 bytes CRC + 8 bytes subchannel + 2048 bytes data + 280 bytes parity error checking codes.  */
-    /* "Headerless" disc image;	1 sector = 2048 bytes data. */
+    /* ISO9660 MODE 1;        1 sector = 12 bytes "sync" + 4 bytes CRC + 2048 bytes data + 8 bytes reserved space + 280 bytes parity error checking codes. */
+    /* Skip the MODE2/XA header;    1 sector = 12 bytes "sync" + 4 bytes CRC + 8 bytes subchannel + 2048 bytes data + 280 bytes parity error checking codes.  */
+    /* "Headerless" disc image;    1 sector = 2048 bytes data. */
 
     if (sectortype == 0xFF) { /* "Headerless" disc image. */
         if (RawReadSectors(discImg, sectortype, lsn, sectors, buffer) != sectors)

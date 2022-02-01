@@ -154,10 +154,9 @@ int HDLGManLoadGameList(struct HDLGameEntry **GameList)
                 }
             } else
                 NumGamesInList = 0;
-        }
-        /*	else if(NumGamesInList<0){
-                printf("HDLGMan (debug): Can't load game list: %d\n", NumGamesInList);
-            } */
+        } /* else if (NumGamesInList < 0) {
+            printf("HDLGMan (debug): Can't load game list: %d\n", NumGamesInList);
+        } */
     } else {
         // printf("HDLGMan (debug): Can't send LOAD_GAME_LIST command: %d\n", result);
         NumGamesInList = 0;
@@ -185,10 +184,9 @@ int HDLGManLoadGameListEntry(struct HDLGameEntry *GameListEntry, int index)
                 GameListEntry->TRType  = GameEntryTransit.TRType;
                 GameListEntry->sectors = GameEntryTransit.sectors;
             }
-        }
-        /*	else if(NumGamesInList<0){
-                printf("HDLGMan (debug): Can't load game list: %d\n", NumGamesInList);
-            } */
+        } /* else if (NumGamesInList < 0) {
+            printf("HDLGMan (debug): Can't load game list: %d\n", NumGamesInList);
+        } */
     } else {
         // printf("HDLGMan (debug): Can't send LOAD_GAME_LIST command: %d\n", result);
         NumGamesInList = 0;

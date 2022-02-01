@@ -47,7 +47,7 @@ static const char *sizeList[APA_NUMBER_OF_SIZES] = {
     "128M", "256M", "512M", "1G", "2G", "4G", "8G", "16G", "32G"};
 
 ///////////////////////////////////////////////////////////////////////////////
-//	Function declarations
+//    Function declarations
 static int fioPartitionSizeLookUp(char *str);
 static int fioInputBreaker(char const **arg, char *outBuf, int maxout);
 static int fioDataTransfer(iop_file_t *f, void *buf, int size, int mode);
@@ -652,8 +652,8 @@ int hddDread(iop_file_t *f, iox_dirent_t *dirent)
             // if sub get id from main header...
             apa_cache_t *cmain = apaCacheGetHeader(f->unit, clink->header->main, APA_IO_MODE_READ, &rv);
             if (cmain != NULL) {
-                /*	This was the SONY original, which didn't do bounds-checking:
-                    rv=strlen(cmain->header->id);
+                /*  This was the SONY original, which didn't do bounds-checking:
+                    rv = strlen(cmain->header->id);
                     strcpy(dirent->name, cmain->header->id); */
                 strncpy(dirent->name, cmain->header->id, APA_IDMAX);
                 dirent->name[APA_IDMAX] = '\0';
@@ -662,8 +662,8 @@ int hddDread(iop_file_t *f, iox_dirent_t *dirent)
                 apaCacheFree(cmain);
             }
         } else {
-            /*	This was the SONY original, which didn't do bounds-checking:
-                rv=strlen(clink->header->id);
+            /*  This was the SONY original, which didn't do bounds-checking:
+                rv = strlen(clink->header->id);
                 strcpy(dirent->name, clink->header->id); */
             strncpy(dirent->name, clink->header->id, APA_IDMAX);
             dirent->name[APA_IDMAX] = '\0';
@@ -680,11 +680,11 @@ int hddDread(iop_file_t *f, iox_dirent_t *dirent)
     return rv;
 }
 
-/*	Originally, SONY provided no function for renaming partitions.
-    Syntax:	rename <Old ID>,<fpwd> <New ID>,<fpwd>
+/*  Originally, SONY provided no function for renaming partitions.
+    Syntax:    rename <Old ID>,<fpwd> <New ID>,<fpwd>
 
     The full-access password (fpwd) is required.
-    System partitions (__*) cannot be renamed.	*/
+    System partitions (__*) cannot be renamed.    */
 int hddReName(iop_file_t *f, const char *oldname, const char *newname)
 {
     apa_params_t oldParams;

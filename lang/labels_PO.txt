@@ -1,0 +1,89 @@
+﻿OK
+Cancelar
+Sim
+Não
+Próximo
+Voltar
+Habilitado
+Desabilitado
+Alternar opção
+Escolher campo
+Escolher jogo
+Opções do jogo
+Apagar jogo
+Instalar jogo
+Escolher tecla
+Mover cursor
+Alternar teclado
+Enter
+Voltar
+Inserir espaço
+Sair
+Selecionar ícone
+Selecionar dispositivo
+Cuidado
+Erro
+Informação
+Confirmação
+Por favor, espere
+Modo administração remota
+Origem do ícone:
+Instalando...
+Título:
+ID:
+Mídia:
+Taxa:
+Tempo:
+Título do jogo     (80 caracteres máx):
+Título OSD linha 1 (16 caracteres máx):
+Título OSD linha 2 (16 caracteres máx):
+Carregar núcleo alternativo
+Modo de leitura alternativa
+Excluir chamadas de sistema
+Desativar vídeos PSS
+Desativar suporte DEV9
+Desativar IGR
+- não usado -
+Esconder módulo DEV9
+Reduzir velocidade leitura
+Memory Card
+Slot 1
+Slot 2
+Dispositivo USB
+Padrão
+Save do jogo
+Icone externo
+Definições de rede
+MAC Address
+IP Address
+Netmask
+Gateway
+Link State
+Link Mode
+Up
+Down
+Unknown
+10Mbps HDX
+10Mbps FDX
+100Mbps HDX
+100Mbps FDX
+Flow-Control
+Dropped Tx Frames
+Dropped Rx Frames
+Tx LOSSCR
+Rx Overrun
+Tx EDEFER
+Rx Bad Length
+Tx Collision
+Rx Bad FCS
+Tx Underrun
+Rx Bad Alignment
+Auto Negotiation
+Options
+Network Options
+Advanced Settings
+Use DHCP
+Address Type
+Sort Titles
+Static
+DHCP

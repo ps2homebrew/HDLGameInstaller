@@ -1,0 +1,89 @@
+﻿OK
+Cancella
+Si
+No
+Avanti
+Indietro
+Attivato
+Disattivato
+Togli opzione
+Seleziona il campo
+Seleziona il gioco
+Opzioni gioco
+Cancella il gioco
+Installa il gioco
+Seleziona la chiave
+Muovi il cursore
+Togli la tastiera
+Entra
+Backspace
+spazio
+Esci dal programma
+Seleziona icona
+Seleziona dispositivo
+Attenzione
+Errore
+Informazione
+Conferma
+Attendere
+Modalità amministratore remoto
+Sorgente icona:
+Intallazione...
+Titolo:
+ID disco:
+Tipo disco:
+Voto:
+Tempo\nrimanente:
+Titolo completo (Massimo 80 caratteri):
+Linea titolo OSD 1 (Massimo 16 caratteri):
+Linea titolo OSD 2 (Massimo 16 caratteri):
+Usa EE core alternativo:
+Lettura Multithread:
+Apri syscalls:
+Disattiva video PSS:
+Disattiva supporto DVD9:
+Disattiva IGR:
+Inutilizzato:
+Nascondi i moduli DEV9:
+Rallenta la lettura dei dati:
+Memory card
+Slot 1
+Slot 2
+Unità archiviazione USB
+Default
+Save gioco
+Icona esterna
+Stato network
+MAC Address
+IP Address
+Netmask
+Gateway
+Link State
+Link Mode
+Up
+Down
+Unknown
+10Mbps HDX
+10Mbps FDX
+100Mbps HDX
+100Mbps FDX
+Flow-Control
+Dropped Tx Frames
+Dropped Rx Frames
+Tx LOSSCR
+Rx Overrun
+Tx EDEFER
+Rx Bad Length
+Tx Collision
+Rx Bad FCS
+Tx Underrun
+Rx Bad Alignment
+Auto Negotiation
+Options
+Network Options
+Advanced Settings
+Use DHCP
+Address Type
+Sort Titles
+Static
+DHCP

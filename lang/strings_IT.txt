@@ -1,0 +1,36 @@
+﻿Impossibile avviare il sistema.
+Procedi?
+Cancellare input?
+Inserisci l'intero titolo del gioco!
+Inserisci il titolo 1 dell'OSD!
+Cambiare l'icona del gioco?
+Impossibile caricare l'icona scelta. Continuare con quella di default?
+Errore durante l'installazione dei file dell'OSD.
+Nessun harddisk rilevato.
+Harddisk non formattato. Formatta?\nAttenzione: Tutti i dati precedenti verranno persi.
+Esci dal programma?
+Gioco aggiornato con successo!
+Si è verificato un errore durante l'aggionamento del gioco.
+Cancellare il gioco?
+Attendere...
+Gioco già installato.\nSovrascrivere la vecchia installazione?
+Gioco installato con successo!
+Disco inserito non supportato.\nInserisci un gioco Playstation 2.
+Inserire disco.
+Lettura disco...
+Errore durante la lettura del disco.
+Errore durante l'analisi del file SYSTEM.CNF.\nInserisci un altro disco.
+Cancellare l'installazione del gioco?
+Errore lettura.\nConstrolla lo stato del tuo disco.
+Errore scrittura.\nDisco danneggiato.
+Memoria insufficiente.\nRiavviare l'installer.
+Installazione del gioco annulata.
+Errore durante l'accesso alla partizione.
+La console è collegata ad un computer.\n\nNon disconnetere o spegnere la console.
+Nessuna icona trovata.
+Error: there is no network connection.
+Connecting to network. Please wait.
+Error: failed to acquire an IP address from the DHCP server.
+There is insufficient space on the HardDisk Drive (HDD) unit.
+Saving. Please do not switch off or disconnect your console.
+Error: failed to save settings.

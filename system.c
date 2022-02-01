@@ -288,20 +288,19 @@ int GetDiscIDFromStartupFilename(const char *StartupFilename, char *DiscID)
 {
     int result;
 
-    /*	result=strlen(StartupFilename);
-        if((result==11 && StartupFilename[9]!=';' && StartupFilename[10]!='1')	||
-            (result==13 && StartupFilename[11]==';' && StartupFilename[12]=='1')){ */
+    /* result = strlen(StartupFilename);
+    if ((result == 11 && StartupFilename[9] != ';' && StartupFilename[10] != '1') ||
+        (result == 13 && StartupFilename[11] == ';' && StartupFilename[12] == '1')) { */
     strncpy(DiscID, StartupFilename, 4);
     DiscID[4] = '-';
     strncpy(&DiscID[5], &StartupFilename[5], 3);
     strncpy(&DiscID[8], &StartupFilename[9], 2);
     DiscID[10] = '\0';
     result     = 0;
-    /*	}
-        else{
-            DiscID[0]='\0';
-            result=-EINVAL;
-        } */
+    /* } else {
+        DiscID[0] = '\0';
+        result    = -EINVAL;
+    } */
 
     return result;
 }
@@ -529,8 +528,8 @@ static int GetPartSize(unsigned long int NumSectors, unsigned int *NumSectorsInP
 
         for (i = 0; i < APA_NUMBER_OF_SIZES; i++) {
             if (APAPartSizeList[i].SizeInSectors - ReservedSectors >= NumSectors || APAPartSizeList[i].SizeInSectors - ReservedSectors >= MaxDiscSectorsPerPart - ReservedSectors) {
-                /*	Judge whether the amount of space remaining is justifiable. If more space can be saved by using several smaller partitions instead of a single large one, do it (e.g, for a 600MB game, use multiple 256MB partitions instead of a single 1GB partition).
-                    If the amount of space being wasted is equal to or greater than the smallest partition size, use multiple smaller partitions instead of a single large one.	*/
+                /*    Judge whether the amount of space remaining is justifiable. If more space can be saved by using several smaller partitions instead of a single large one, do it (e.g, for a 600MB game, use multiple 256MB partitions instead of a single 1GB partition).
+                    If the amount of space being wasted is equal to or greater than the smallest partition size, use multiple smaller partitions instead of a single large one.    */
                 if (i > 0 && APAPartSizeList[i].SizeInSectors - NumSectors >= APAPartSizeList[0].SizeInSectors) {
                     i--;
                 }
@@ -803,12 +802,12 @@ int InstallGameFromCDVDDrive(sceCdRMode *ReadMode, const char *InstallPath, cons
     ee_sema_t sema;
     unsigned int PadStatus;
 
-    /*	1. Gather information on the game to be installed by parsing SYSTEM.CNF and from the CD/DVD drive or the ISO disc image.
+    /*  1. Gather information on the game to be installed by parsing SYSTEM.CNF and from the CD/DVD drive or the ISO disc image.
         2. Create the partition, in the HDLoader format. (In other words, a modded version of PS2HDD.irx is required)
         3. Format the partition.
         4. Mount and open the partition.
         5. Copy the disc image to the partition.
-        6. Close and unmount the partition.	*/
+        6. Close and unmount the partition.    */
 
     DisplayFlashStatusUpdate(SYS_UI_MSG_PLEASE_WAIT);
 

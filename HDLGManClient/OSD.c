@@ -121,7 +121,7 @@ static int GetXYZIVectorValueFromConfigLine(unsigned char *field, wchar_t *line)
 static int ParseIconSysFile(const wchar_t *file, unsigned int length, struct IconSysData *data)
 {
     int result, ValueLength, TotalFileLengthInBytes;
-    wchar_t *line, *value, *buffer;
+    wchar_t *line, *value, *buffer, *pt;
 
     memset(data, 0, sizeof(struct IconSysData));
 
@@ -130,10 +130,10 @@ static int ParseIconSysFile(const wchar_t *file, unsigned int length, struct Ico
         memcpy(buffer, file, TotalFileLengthInBytes);
         buffer[length] = '\0';
 
-        line = wcstok(buffer, L"\r\n");
+        line = wcstok(buffer, L"\r\n", &pt);
         if (line != NULL && wcscmp(line, L"PS2X") == 0) {
             result = 0;
-            while ((line = wcstok(NULL, L"\r\n")) != NULL) {
+            while ((line = wcstok(NULL, L"\r\n", &pt)) != NULL) {
                 if (IsConfigFileLineParam(line, L"title0")) {
                     result = GetStringValueFromConfigLine(data->title0, sizeof(data->title0) / sizeof(wchar_t), line);
                 } else if (IsConfigFileLineParam(line, L"title1")) {
@@ -303,7 +303,7 @@ int LoadMcSaveSysFromPath(const wchar_t *SaveFilePath, mcIcon *McSaveIconSys)
             result = -EIO;
     } else {
         result = -ENOENT;
-        //	DEBUG_PRINTF("Memory card save file not found: %d\n", result);
+        // DEBUG_PRINTF("Memory card save file not found: %d\n", result);
     }
 
     return result;

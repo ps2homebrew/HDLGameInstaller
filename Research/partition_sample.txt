@@ -19,12 +19,12 @@ typedef struct PartAttributeAreaTable{
 } t_PartAttrTab;
 
 *** ALL RESERVED/UNUSED AREAS IN THE ATTRIBUTE AREA MUST BE ZERO-FILLED!! ***
-The offset fields for each file descriptor is in bytes (In multiples of 512 bytes), relative to the start of the attribute area.
+The offset fields for each file descriptor are in bytes (In multiples of 512 bytes), relative to the start of the attribute area.
 The format of the icons is the same as the format of the icons used on regular Playstation 2 Memory Cards.
 
-The format of SYSTEM.CNF is exactly the same as the format of any SYSTEM.CNF files found on a SCE CD/DVD disc.
+The format of SYSTEM.CNF is exactly the same as the format of any SYSTEM.CNF files were found on an SCE CD/DVD disc.
 A new field is added: HDDUNITPOWER. Setting HDDUNITPOWER to NIC causes the HDD to be powered-down after the program is launched, but the Network Adaptor will still be powered-up.
-	Setting HDDUNITPOWER to NICHDD keeps the Network Adaptor and HDD powered-up.
+	Setting HDDUNITPOWER to NICHDD keeps the Network Adaptor and HDD powered up.
 
 (UNDOCUMENTED) Setting BOOT2 to PATINFO causes an embedded KELF to be launched when the program is selected.
 (UNDOCUMENTED) Setting BOOT2 to NOBOOT causes the partition to be marked as being unbootable. The message "This program cannot be started" will be displayed.

@@ -1,0 +1,114 @@
+name: CI-compile
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: HDLGameInstaller compilation
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:v1.0
+    # instead of "ps2dev/ps2dev:latest" you can use different tags, for example for old projects you can use "ps2dev/ps2dev:v1.0"
+    steps:
+      - name: Install dependencies
+        run: |
+          apk add build-base git zip
+
+      - uses: actions/checkout@v2
+      - run: |
+          git fetch --prune --unshallow
+
+      - name: Compile project
+        run: |
+          make
+
+      # commands for compiling your project
+      - name: Get short SHA and repository name
+        id: slug
+        run: |
+          echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+          echo "::set-output name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")"
+
+      - name: Upload artifacts
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
+          path: |
+            HDLGameInstaller.elf
+            README.md
+            lang/*
+
+  build-hdlgmanclient:
+    name: HDLGManClient compilation
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Build
+        run: |
+          cd HDLGManClient
+          msbuild /p:Configuration=Release
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: HDLGManClient
+          path: HDLGManClient/Release/HDLGManClient.exe
+
+  release:
+    needs: [build, build-hdlgmanclient]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get short SHA and repository name
+        id: slug
+        run: |
+          echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+          echo "::set-output name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")"
+
+      - name: Download HDLGameInstaller artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
+          path: HDLGameInstaller
+
+      - name: Prepare HDLGameInstaller archive
+        run: |
+          7z a ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}.7z HDLGameInstaller/*
+
+      - name: Download HDLGManClient artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: HDLGManClient
+
+      - name: Create pre-release
+        if: github.ref == 'refs/heads/master'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          automatic_release_tag: "latest"
+          title: "Development build"
+          files: |
+            ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}.7z
+            HDLGManClient.exe
+
+      - name: Create Tagged Release Draft
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: "stable"
+          draft: true
+          files: |
+            ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}.7z
+            HDLGManClient.exe

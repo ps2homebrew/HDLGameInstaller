@@ -1,5 +1,5 @@
 // Define if the background should be centered instead of being stretched.
-//#define CENTRE_BACKGROUND	1
+// #define CENTRE_BACKGROUND 1
 
 #define GS_WHITE       GS_SETREG_RGBAQ(0xFF, 0xFF, 0xFF, 0x00, 0x00)
 #define GS_BLACK       GS_SETREG_RGBAQ(0x00, 0x00, 0x00, 0x00, 0x00)

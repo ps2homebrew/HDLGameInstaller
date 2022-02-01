@@ -1,0 +1,36 @@
+﻿Erreur d'initialisation du système.
+Continuer?
+Annuler les changements?
+Indiquer le titre complet du jeu:
+Titre OSD Ligne 1:
+Changer l'icône du jeu?
+Impossible de charger l'icône sélectionnée. Poursuivre avec l'icône par défaut?
+Echec de l'installataion des fichiers OSD.
+Disque dur non détecté.
+Le disque dur n'est pas formaté. Le formater?\nAttention : toutes les données seront effacées.
+Quitter le programme.
+Jeu mis à jour avec succès!
+Une erreur est survenue lors de la mise à jour du jeu.
+Supprimer le jeu?
+Veuillez patienter...
+Ce jeu est déjà installé. \nVoulez-vous le réinstaller?
+Le jeu a été installé avec succès!
+Format du disque non supporté. \nVeuillez insérer un disque au format PS2.
+Veuillez insérer un disque.
+Lecture du disque en cours...
+Erreur lors de la lecture du disque..
+Une erreur s'est produite lors de l'analyse du fichier SYSTEM.CNF. \nVeuillez insérer un autre disque.
+Annuler l'installation du jeu?
+Erreur de lecture. \Veuillez vérifier l'état du disque.
+Erreur d'écriture. \Veuillez réparer votre disque.
+Erreur mémoire. \n Veuillez relancer l'installeur.
+Installation du jeu annulée.
+Echec de l'accès à la partition.
+L'ordinateur est connecté à la console. \n\nVeuillez ne pas déconnecter ni éteindre la console.
+Aucune icône n'a été trouvée.
+Error: there is no network connection.
+Connecting to network. Please wait.
+Error: failed to acquire an IP address from the DHCP server.
+There is insufficient space on the HardDisk Drive (HDD) unit.
+Saving. Please do not switch off or disconnect your console.
+Error: failed to save settings.

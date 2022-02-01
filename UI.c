@@ -222,7 +222,7 @@ static int ParseFontListFile(char **array, FILE *file, unsigned int ExpectedNumL
     return result;
 }
 
-static const char DefaultFontFilename[] = "NotoSans-Bold.ttf";
+static const char DefaultFontFilename[] = "NotoSansMono-CondensedBold.ttf";
 
 static char *GetDefaultFontFilePath(void)
 {

@@ -144,7 +144,7 @@ static INT_PTR CALLBACK CopyGameProgressDialog(HWND hwnd, UINT uMsg, WPARAM wPar
             ofn.lpstrInitialDir   = NULL;
             ofn.lpstrTitle        = NULL;
             ofn.lpstrDefExt       = NULL;
-            //			ofn.lCustData=NULL;
+            // ofn.lCustData         = NULL;
             ofn.lpfnHook        = NULL;
             ofn.lpTemplateName  = NULL;
             TargetPathBuffer[0] = '\0';
@@ -460,11 +460,11 @@ static INT_PTR CALLBACK InstallGameDlg(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
                     ofn.lpstrInitialDir   = NULL;
                     ofn.lpstrTitle        = NULL;
                     ofn.lpstrDefExt       = NULL;
-                    //					ofn.lCustData=NULL;
-                    ofn.lpfnHook        = NULL;
-                    ofn.lpTemplateName  = NULL;
-                    SourcePathBuffer[0] = '\0';
-                    ofn.Flags           = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+                    // ofn.lCustData         = NULL;
+                    ofn.lpfnHook          = NULL;
+                    ofn.lpTemplateName    = NULL;
+                    SourcePathBuffer[0]   = '\0';
+                    ofn.Flags             = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
                     if (GetOpenFileName(&ofn)) {
                         SetDlgItemText(hwnd, IDC_EDIT_DISC_IMG_SRC, SourcePathBuffer);
                     }

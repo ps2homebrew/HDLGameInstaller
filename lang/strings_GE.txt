@@ -1,0 +1,36 @@
+﻿Initialisierungsfehler.
+Fortfahren?
+Eingabe abbrechen?
+Bitte den vollständigen Titel eingeben!
+Bitte den OSD-Titel 1 eingeben!
+Spiel-Icon ändern?
+Konnte gewähltes Icon nicht laden. Mit Standart-Icon fortfahren?
+Konnte OSD-Dateien nicht installieren.
+Keine Festplatte gefunden.
+Festplatte ist nicht formatiert. Formatieren?\nAchtung: Alle vorhandenen Daten werden gelöscht.
+Programm beenden?
+Spiel erfolgreich aktualisiert!
+Beim Aktualisieren des Spiels ist ein fehler aufgetreten.
+Spiel löschen?
+Bitte warten...
+Dieses Spiel ist bereits installiert.\nAlte Installation überschreiben?
+Spiel erfolgreich installiert!
+Eingelegte CD/DVD wird nicht unterstützt.\nBitte eine Playstation 2 Spiele-CD/DVD einlegen.
+Bitte eine CD/DVD einlegen.
+Lese CD/DVD...
+Beim Lesen der CD/DVD ist ein Fehler aufgetreten.
+Beim Einleden der SYSTEM.CNF Datei ist ein Fehler aufgetreten.\nBitte eine andere CD/DVD einlegen.
+Spieleinstallation abbrechen?
+Ein Lesefehler ist aufgetreten.\nBitte prüfen Sie den Zustand der CD/DVD.
+Ein Schreibfehler ist aufgetreten.\nTauschen Sie ihre Festplatte aus.
+Nicht genügend Speicher frei.\nBitte starten Sie den Installer erneut.
+Spieleinstallation abgebrochen.
+Konnte nicht auf Partition zugreifen.
+Ein Computer ist mit dieser Konsole verbunden.\n\nBitte trennen Sie die Konsole nicht vom Netzwerk und schalten Sie sie nicht ab.
+Keine Icons gefunden.
+Error: there is no network connection.
+Connecting to network. Please wait.
+Error: failed to acquire an IP address from the DHCP server.
+There is insufficient space on the HardDisk Drive (HDD) unit.
+Saving. Please do not switch off or disconnect your console.
+Error: failed to save settings.

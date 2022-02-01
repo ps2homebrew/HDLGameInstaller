@@ -1,5 +1,5 @@
 //#define DEBUG_MODE /* Define this to enable verbose debugging messages */
-//#define UI_TEST_MODE	//Define this to enable UI testing mode (Will simulate a server connection, but no connection will take place).
+//#define UI_TEST_MODE    //Define this to enable UI testing mode (Will simulate a server connection, but no connection will take place).
 
 // Extended error codes.
 #define EEXTCONNLOST 0x2000
@@ -13,7 +13,7 @@
 
 #define IO_BUFFER_SIZE  IO_BANKSIZE
 #define RETRY_COUNT     3 // Maximum number of attempts to make, for failures to read/write to the server.
-#define RECONNECT_COUNT 5 /*	Maximum number of reconnection attempts to make, for every failed attempt to read/write. \
+#define RECONNECT_COUNT 5 /*  Maximum number of reconnection attempts to make, for every failed attempt to read/write. \
                               Note that the maximum number of connection attempts would be equal to RETRY_COUNT*RECONNECT_COUNT. */
 
 /* SCE disc types */

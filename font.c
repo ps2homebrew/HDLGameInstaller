@@ -1,6 +1,6 @@
-/*	Font-drawing engine
-    Version:	1.22 (gsKit version)
-    Last updated:	2018/12/08	*/
+/*    Font-drawing engine
+    Version:    1.22 (gsKit version)
+    Last updated:    2018/12/08    */
 
 #include <malloc.h>
 #include <string.h>
@@ -21,7 +21,7 @@
 
 extern GSGLOBAL *gsGlobal;
 
-/*	Draw the glyphs as close as possible to each other, to save VRAM.
+/*    Draw the glyphs as close as possible to each other, to save VRAM.
 
     C: character
     X: Horizontal frontier
@@ -62,7 +62,7 @@ extern GSGLOBAL *gsGlobal;
         CCCC
         CXXX
         YXXX
-        YXXX	*/
+        YXXX    */
 
 struct FontGlyphSlotInfo
 {
@@ -377,15 +377,15 @@ static struct FontGlyphSlot *AtlasAlloc(Font_t *font, struct FontAtlas *atlas, s
                 GlyphSlot->VramPageY = atlas->frontier[1].y;
 
                 // Give the glyph 1px more, for texel rendering.
-                /*	Update frontier.
+                /*    Update frontier.
                     If we got here, it means that the horizontal frontier is very close the edge of VRAM.
                     Give a large portion of the space recorded under this frontier to the horizontal frontier.
 
-                    Before:		After one more character is added:
-                        CCCC		CCCC
-                        YYYY		CXXX
-                        YYYY		YXXX
-                        YYYY		YXXX	*/
+                    Before:        After one more character is added:
+                        CCCC        CCCC
+                        YYYY        CXXX
+                        YYYY        YXXX
+                        YYYY        YXXX    */
                 atlas->frontier[0].x      = width + 1;
                 atlas->frontier[0].y      = atlas->frontier[1].y;
                 atlas->frontier[0].width  = FNT_ATLAS_WIDTH - (width + 1);
@@ -486,7 +486,7 @@ static int GetGlyph(GSGLOBAL *gsGlobal, Font_t *font, wint_t character, int Draw
         if ((glyphSlot = UploadGlyph(gsGlobal, font, character, font->FTFace->glyph, &atlas)) == NULL)
             return -1;
 
-        //		printf("Uploading %c, %u, %u\n", character, GlyphSlot->VramPageX, GlyphSlot->VramPageY);
+        // printf("Uploading %c, %u, %u\n", character, GlyphSlot->VramPageX, GlyphSlot->VramPageY);
 
         glyphInfo->slot = glyphSlot;
         glyphInfo->vram = atlas->vram;

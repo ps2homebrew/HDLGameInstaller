@@ -97,7 +97,7 @@ void TransformIcon(unsigned int frame, float x, float y, int z, float scale, con
     matrix_translate(TransformMatrix, TransformMatrix, TranslateVector);
 
     // Handle rotation
-    /*	RotationVector[0]=(frame%3600)/3600.0f;
+    /*  RotationVector[0]=(frame%3600)/3600.0f;
         RotationVector[1]=0;
         RotationVector[2]=-(frame%3600)/3600.0f;
         matrix_rotate(TransformMatrix, TransformMatrix, RotationVector);

@@ -1,0 +1,89 @@
+﻿Ok
+Annuler
+Oui
+Non
+Suivant
+Précédent
+Activé
+Désactivé
+Parcourir les options
+Choisir ligne
+Choisir un jeu
+Options du jeu
+Supprimer
+Installer un jeu
+Choix caractère
+Déplacer le curseur
+Min./Maj.
+Valider
+Retour
+Espace
+Quitter
+Choisir l'icône
+Choisir la source
+Attention
+Erreur
+Information
+Confirmation
+Veuillez patienter
+Mode d'aministration à distance
+Choix de l'icône:
+Installation en cours...
+Titre:
+ID du jeu:
+Média:
+Vitesse de transfert:
+Temps\n restant:
+Nom complet du jeu (80 caractères max.):
+Titre OSD Ligne 1 (16 caractères max.):
+Titre OSD Ligne 2 (16 caractères max.):
+Utiliser le coeur alternatif:
+Méthode de lecture alternative:
+Désactiver syscalls:
+Passer les vidéos PSS:
+Désactiver le support DVD9:
+Désactiver l'IGR:
+Inutilisé:
+Cacher le module DEV9:
+Ralentir lecture données:
+Carte mém.
+Slot 1
+Slot 2
+Périph. USB
+Par défaut
+Sauvegarde \ndu jeu
+Icône \npersonnalisée
+Status du réseau
+MAC Address
+IP Address
+Netmask
+Gateway
+Link State
+Link Mode
+Up
+Down
+Unknown
+10Mbps HDX
+10Mbps FDX
+100Mbps HDX
+100Mbps FDX
+Flow-Control
+Dropped Tx Frames
+Dropped Rx Frames
+Tx LOSSCR
+Rx Overrun
+Tx EDEFER
+Rx Bad Length
+Tx Collision
+Rx Bad FCS
+Tx Underrun
+Rx Bad Alignment
+Auto Negotiation
+Options
+Network Options
+Advanced Settings
+Use DHCP
+Address Type
+Sort Titles
+Static
+DHCP

@@ -1,0 +1,36 @@
+﻿Systeeminitialisatiefout.
+Doorgaan?
+Invoeren annuleren?
+Volledige titel invoeren aub!
+OSD regel 1 invoeren aub!
+Spelicoon wijzigen?
+Kan geselecteerde icoon niet laden. Doorgaan met standaardicoon?
+Installeren OSD bestanden mislukt.
+Geen harde schijf gedetecteerd.
+Harde schijf is niet geformatteerd. Formatteren?\nWaarschuwing: Alle data wordt gewist.
+Stop programma?
+Spel succesvol geupdatet!
+Fout tijdens updaten.
+Spel verwijderen?
+Even geduld...
+Dit spel is al geinstalleerd.\nOude installatie overschrijven?
+Spel succesvol geinstalleerd!
+Schijf wordt niet ondersteund.\nVoeren een Playstation 2 spel in aub.
+Schijf invoeren aub.
+Schijf wordt gelezen...
+Fout tijdens het lezen van de schijf.
+Fout tijdens het parsen van SYSTEM.CNF.\nVoeren een andere schijf in aub.
+Spelinstallatie annuleren?
+Leesfout.\nControleer de staat van de schijf aub.
+Schrijffout.\nRepareer de schijf.
+Onvoldoende geheugen.\nInstallatieprogramma opnieuw opstarten aub.
+Spelinstallatie geannuleerd.
+Toegang tot partitie mislukt.
+Een PC is verbonden met deze spelcomputer.\n\nVerinding niet verbreken en spelcomputer niet uitschakelen.
+Geen iconen gevonden.
+Error: there is no network connection.
+Connecting to network. Please wait.
+Error: failed to acquire an IP address from the DHCP server.
+There is insufficient space on the HardDisk Drive (HDD) unit.
+Saving. Please do not switch off or disconnect your console.
+Error: failed to save settings.

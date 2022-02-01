@@ -1,0 +1,36 @@
+﻿Error de inicialización del sistema.
+¿Proceder?
+¿Cancelar entrada?
+¡Por favor pon un nombre al juego!
+¡Por favor pon nombre a la línea 1 del título OSD!
+¿Cambiar icono del juego?
+Imposible cargar el icono seleccionado. ¿Continuar con el icono predeterminado?
+Fallo al instalar los archivos OSD.
+No se ha detectado unidad de disco duro.
+Unidad de disco duro no formateado. ¿Formatear?\nPeligro: Todos los datos serán eliminados.
+¿Seguro qué deseas salir?
+¡Juego actualizado!
+Ha ocurrido un error al actualizar el juego.
+¿Borrar juego?
+Por favor espera...
+Este juego ya se había instalado.\nSobrescribir la antigua instalación?
+¡Juego instalado!
+Disco insertado no soportado.\nPor favor inserta un juego de Playstation 2.
+Por favor inserta un disco.
+Leyendo disco...
+Ha ocurrido un error al leer el disco.
+Ha ocurrido un error al procesar el archivo SYSTEM.CNF.\nPor favor inserta otro disco.
+¿Cancelar instalación del juego?
+Ha ocurrido un fallo de lectura.\nPor favor comprueba la condición del disco.
+Ha ocurrido un fallo de escritura.\nPor favor lleva el disco a reparar.
+Falta de memoria.\nPor favor reinicia el instalador.
+Instalación del juego cancelada.
+Fallo al acceder a la partición.
+Un ordenador está conectado a esta consola.\n\nPor favor no desconectes o apagues la consola.
+No se han encontrado iconos.
+Error: there is no network connection.
+Connecting to network. Please wait.
+Error: failed to acquire an IP address from the DHCP server.
+There is insufficient space on the HardDisk Drive (HDD) unit.
+Saving. Please do not switch off or disconnect your console.
+Error: failed to save settings.

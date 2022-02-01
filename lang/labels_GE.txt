@@ -1,0 +1,89 @@
+﻿OK
+Abbrechen
+Ja
+Nein
+Weiter
+Zurück
+Aktiviert
+Deaktiviert
+Option ändern
+Feld auswählen
+Spiel wählen
+Spieloptionen
+Spiel löschen
+Spiel installieren
+Taste Auswählen
+Cursor bewegen
+Tastatur de-/aktivieren
+Eingabe
+Rücktaste
+Leerzeichen einfügen
+Programm beenden
+Icon auswählen
+Gerät auswählen
+Warnung
+Fehler
+Information
+Bestätigung
+Bitte warten
+Fernzugriffsmodus
+Iconquelle:
+Installiere...
+Titel:
+CD/DVD ID:
+CD/DVD Typ:
+Geschwindigkeit:
+Zeit\nverbleibend:
+Vollständiger Titel (Max 80 Zeichen):
+OSD-Titel Zeile 1 (Max 16 Zeichen):
+OSD-Titel Zeile 2 (Max 16 Zeichen):
+Alternativen EE Core benutzen:
+Multithreaded reading:
+Unhook syscalls:
+Deaktiviere PSS Videos:
+Deaktiviere DVD9 Unterstützung:
+Deaktiviere IGR:
+Ungenutzt:
+DEV9 Modul verbergen:
+Datenlesegeschwindigkeit reduzieren:
+Memory Card
+Steckplatz 1
+Steckplatz 2
+USB Massenspeicher
+Standart
+Speicherstand
+Externes Icon
+Netzwerkstatus
+MAC Address
+IP Address
+Netmask
+Gateway
+Link State
+Link Mode
+Up
+Down
+Unknown
+10Mbps HDX
+10Mbps FDX
+100Mbps HDX
+100Mbps FDX
+Flow-Control
+Dropped Tx Frames
+Dropped Rx Frames
+Tx LOSSCR
+Rx Overrun
+Tx EDEFER
+Rx Bad Length
+Tx Collision
+Rx Bad FCS
+Tx Underrun
+Rx Bad Alignment
+Auto Negotiation
+Options
+Network Options
+Advanced Settings
+Use DHCP
+Address Type
+Sort Titles
+Static
+DHCP

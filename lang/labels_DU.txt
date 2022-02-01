@@ -1,0 +1,89 @@
+﻿OK
+Annuleren
+Ja
+Nee
+Volgende
+Terug
+Aan
+Uit
+Toggle opties
+Selecteer veld
+Selecteer spel
+Spelopties
+Verwijder spel
+Installeer spel
+Selecteer toets
+Verplaats cursor
+Toetsenbord aan/uit
+Enter
+Backspace
+Spatie
+Stop programma
+Selecteer icoon
+Select apparaat
+Waarschuwing
+Fout
+Informatie
+Bevestiging
+Even geduld...
+Remote administration mode
+Icoon lokatie:
+Installeren...
+Titel:
+Disc ID:
+Disc type:
+Snelheid:
+Tijd\nresterend:
+Volledige titel (Max 80 characters):
+OSD titel regel 1 (Max 16 characters):
+OSD titel regel 2 (Max 16 characters):
+Alternatieve EE core:
+Multithreaded reading:
+Unhook syscalls:
+PSS video's:
+DVD9 ondersteuning:
+IGR:
+Ongebruikt:
+Verberg DEV9 module:
+Vertraagd lezen van data:
+Memory card
+Slot 1
+Slot 2
+USB massaopslag
+Standaardinstellingen
+Spel save
+Extern icoon
+Netwerkstatus
+MAC Address
+IP Address
+Netmask
+Gateway
+Link State
+Link Mode
+Up
+Down
+Unknown
+10Mbps HDX
+10Mbps FDX
+100Mbps HDX
+100Mbps FDX
+Flow-Control
+Dropped Tx Frames
+Dropped Rx Frames
+Tx LOSSCR
+Rx Overrun
+Tx EDEFER
+Rx Bad Length
+Tx Collision
+Rx Bad FCS
+Tx Underrun
+Rx Bad Alignment
+Auto Negotiation
+Options
+Network Options
+Advanced Settings
+Use DHCP
+Address Type
+Sort Titles
+Static
+DHCP

@@ -64,7 +64,7 @@ static void DrawMenuExitAnimation(void);
 /*
     In this whole file, some variables and values used would be:
 
-    SelectedMenu ->	0 = The game list.
+    SelectedMenu ->    0 = The game list.
             1 = The control panel.
 
     SelectedMenuOption -> The element in the menu that is currently selected.
@@ -935,7 +935,7 @@ static void RedrawMainMenu(struct HDLGameEntry *HDLGameList, unsigned int NumHDL
 
     for (i = 0; i < NumGamesToDisplay; i++) {
         FontPrintf(gsGlobal, 14, 60 + i * 16, 1, 1.0f, GS_WHITE_FONT, "Game title here");
-        //		FontPrintf(gsGlobal, 14, 60+i*16, 1, 1.0f, GS_WHITE_FONT, "111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999");
+        // FontPrintf(gsGlobal, 14, 60 + i * 16, 1, 1.0f, GS_WHITE_FONT, "111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999");
     }
 #endif
 
@@ -2171,7 +2171,7 @@ int DisplaySoftKeyboard(wchar_t *buffer, unsigned int length, unsigned int optio
         DisplayedCharCount = wFontPrintField(gsGlobal, SOFT_KEYBOARD_DISPLAY_X_LOCATION, SOFT_KEYBOARD_DISPLAY_Y_LOCATION + 8, 1, SOFT_KEYBOARD_FONT_SCALE, GS_WHITE_FONT, &CharacterBuffer[DisplayedCharStartPos], SOFT_KEYBOARD_MAX_DISPLAYED_WIDTH, CursorPositionOnScreen);
 
         // Changing the characters may result in the displayable character count changing.
-        if (UpdateCursor) { /*	Recompute the cursor's position. If it changes, then it will be corrected in the next frame.
+        if (UpdateCursor) { /*  Recompute the cursor's position. If it changes, then it will be corrected in the next frame.
                                 Ideally, FreeType could be used to simulate how much space is required, but it is computationally expensive to make multiple runs. */
             CursorPositionOnScreen = DisplayedCharCount;
 

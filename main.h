@@ -6,8 +6,8 @@
 #define FILEIO_BLOCK_SIZE (256 * 2048) // Size of the FILEIO Read/Write buffer.
 
 #define GAME_TITLE_MAX_LEN_BYTES 160                            // In bytes, when in UTF-8 characters.
-#define GAME_TITLE_MAX_LEN       (GAME_TITLE_MAX_LEN_BYTES / 2) /*	In characters. Note: the original format for HDLoader just has a 160-character space. \
-                                        But UTF-8 characters may have 1 or more bytes each. Hence this is an approximation.	*/
+#define GAME_TITLE_MAX_LEN       (GAME_TITLE_MAX_LEN_BYTES / 2) /* In characters. Note: the original format for HDLoader just has a 160-character space. \
+                                        But UTF-8 characters may have 1 or more bytes each. Hence this is an approximation. */
 #define OSD_TITLE_MAX_LEN_BYTES  (OSD_TITLE_MAX_LEN * 4)        // In bytes, when in UTF-8 characters
 #define OSD_TITLE_MAX_LEN        16                             // In characters
 

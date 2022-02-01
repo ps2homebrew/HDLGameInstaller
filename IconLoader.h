@@ -21,11 +21,12 @@ struct IconFileModelSectionHeader
 };
 
 // The following structure is then repeated nbtx times.
-/* struct IconFileModelVertex{
-    unsigned short int vtx[4*nbsp];	//3x6:10 fixed-point elements for each point of every coordinate, with 2-byte padding.
-    unsigned short int normal[4];	//3x4:12 fixed-point elements for each point, with 2-byte padding.
-    unsigned short int st[2];		//Texture coordinates: 2x4:12 fixed-point elements.
-    unsigned char color[4];			//Vertex color:	1 byte for R, G, B and A. A is ignored.
+/* struct IconFileModelVertex
+{
+    unsigned short int vtx[4 * nbsp]; // 3x6:10 fixed-point elements for each point of every coordinate, with 2-byte padding.
+    unsigned short int normal[4];     // 3x4:12 fixed-point elements for each point, with 2-byte padding.
+    unsigned short int st[2];         // Texture coordinates: 2x4:12 fixed-point elements.
+    unsigned char color[4];           // Vertex color:    1 byte for R, G, B and A. A is ignored.
 }; */
 
 struct IconFileModelAnimSectionHeader
@@ -51,18 +52,18 @@ struct IconFileModelAnimFrameKeyData
 // The following structure is repeated nbksp times
 struct IconFileModelAnimFrame
 {
-    unsigned int kspid; // Shape number.
-    unsigned int nbkf;  // Number of key frames (maximum 10).
-    //	struct IconFileModelAnimFrameKeyData keys[];		//Key data goes here in the file.
+    unsigned int kspid;                          // Shape number.
+    unsigned int nbkf;                           // Number of key frames (maximum 10).
+    // struct IconFileModelAnimFrameKeyData keys[]; // Key data goes here in the file.
 };
 
 /* Texture data begins here. The content depends on whether it's compressed or not.
 If it's compressed:
     unsigned int size -> size of compressed data.
-    <data>	-> RLE-encoded 128x128 PSMCT16 image, compressed in 2-byte units.
+    <data>    -> RLE-encoded 128x128 PSMCT16 image, compressed in 2-byte units.
 
 If is's uncompressed:
-    <data>	-> Uncompressed, raw 128x128 PSMCT16 image.
+    <data>    -> Uncompressed, raw 128x128 PSMCT16 image.
 */
 
 /**************************/

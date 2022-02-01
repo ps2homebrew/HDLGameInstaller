@@ -14,7 +14,7 @@
 #define _WIN32_WINNT 0x500
 
 #include <windows.h>
-//#include <Ntddcdrm.h>	//Not available in Microsoft Visual Studio 2010.
+// #include <Ntddcdrm.h> //Not available in Microsoft Visual Studio 2010.
 #include <winioctl.h>
 
 #ifndef IOCTL_CDROM_GET_DRIVE_GEOMETRY_EX
@@ -37,11 +37,10 @@ int SystemDriveGetDiscInfo(void *driveH, u32 *nSectors, u8 *discType)
     }
 
 #if 0
-	if((discGeometry.Geometry.BytesPerSector==2352)){
-	    *discType=1; /* Assume that it's a ISO9660 MODE 1/2048 filesystem disc first. */
+    if ((discGeometry.Geometry.BytesPerSector == 2352)) {
+        *discType = 1; /* Assume that it's a ISO9660 MODE 1/2048 filesystem disc first. */
 
-	}
-	else
+    } else
 #endif
     *discType = 0xFF; /* The disc has 2048 byte sectors. */
 

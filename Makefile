@@ -13,7 +13,7 @@ EE_IOP_OBJS = IOMANX_irx.o FILEXIO_irx.o SIO2MAN_irx.o MCMAN_irx.o MCSERV_irx.o 
 
 EE_INCS := -I$(PS2SDK)/ports/include -I$(PS2SDK)/ports/include/freetype2 -I$(PS2DEV)/gsKit/include -I./FreeType -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include
 EE_LDFLAGS := -L$(PS2SDK)/ports/lib -L$(PS2DEV)/gsKit/lib -L. -L$(PS2SDK)/ee/lib
-EE_LIBS = -lpatches -lgskit -ldmakit -lpng -lzlib -lpadx -lmc -lpoweroff -lfileXio -lcdvd -lhdd -lps2ip -lnetman -lmath3d -lm -lfreetype
+EE_LIBS = -lpatches -lgskit -ldmakit -lpng -lz -lpadx -lmc -lpoweroff -lfileXio -lcdvd -lhdd -lps2ip -lnetman -lmath3d -lm -lfreetype
 
 EE_GPVAL = -G9760
 EE_CFLAGS += -Os -mgpopt $(EE_GPVAL)
