@@ -28,9 +28,9 @@ Instalación del juego cancelada.
 Fallo al acceder a la partición.
 Un ordenador está conectado a esta consola.\n\nPor favor no desconectes o apagues la consola.
 No se han encontrado iconos.
-Error: there is no network connection.
-Connecting to network. Please wait.
-Error: failed to acquire an IP address from the DHCP server.
-There is insufficient space on the HardDisk Drive (HDD) unit.
-Saving. Please do not switch off or disconnect your console.
-Error: failed to save settings.
+Error: No hay conección de red.
+Connectabdi a la red. Por favor espere...
+Error: Fallo al recuperar Dirección IP del DHCP.
+No hay suficiente espacio en el Disco duro.
+Guardando. Por favor no apague o desconecte la consola.
+Error: fallo al guardar ajustes.
