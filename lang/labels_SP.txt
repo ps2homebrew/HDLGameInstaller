@@ -53,37 +53,37 @@ Medio USB
 Predeterminado
 Partida juego
 Icono externo
-Estado red
-MAC Address
-IP Address
-Netmask
-Gateway
-Link State
-Link Mode
-Up
-Down
-Unknown
+Estado de red
+Dirección MAC
+Dirección IP
+Mascara de red
+Puerta de enlace
+Estado del vínculo
+Modo de vínculo
+Arriba
+Abajo
+Desconocido
 10Mbps HDX
 10Mbps FDX
 100Mbps HDX
 100Mbps FDX
-Flow-Control
+Control de flujo
 Dropped Tx Frames
 Dropped Rx Frames
 Tx LOSSCR
 Rx Overrun
 Tx EDEFER
 Rx Bad Length
-Tx Collision
-Rx Bad FCS
+Tx Colisión
+Rx FCS malo
 Tx Underrun
-Rx Bad Alignment
-Auto Negotiation
-Options
-Network Options
-Advanced Settings
-Use DHCP
-Address Type
-Sort Titles
-Static
+Rx mal alineamiento
+Auto Negociación
+Opciones
+Opciones de red
+Ajustes avanzados
+Usar DHCP
+Tipo de dirección
+Ordenar títulos
+Estático
 DHCP
