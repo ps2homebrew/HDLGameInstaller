@@ -32,7 +32,7 @@ jobs:
 
       - name: Upload artifacts
         if: ${{ success() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
           path: |
@@ -56,7 +56,7 @@ jobs:
           cd HDLGManClient
           msbuild /p:Configuration=Release
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: HDLGManClient
           path: HDLGManClient/Release/HDLGManClient.exe
@@ -75,7 +75,7 @@ jobs:
           echo "::set-output name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")"
 
       - name: Download HDLGameInstaller artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}
           path: HDLGameInstaller
@@ -85,7 +85,7 @@ jobs:
           7z a ${{ steps.slug.outputs.REPOSITORY_NAME }}-${{ steps.slug.outputs.sha8 }}.7z HDLGameInstaller/*
 
       - name: Download HDLGManClient artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: HDLGManClient
 
