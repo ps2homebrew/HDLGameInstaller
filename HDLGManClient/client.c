@@ -63,7 +63,7 @@ static int DoRecv(SOCKET s, void *buffer, int length)
     FD_SET readFDs;
 
     for (ptr = (char *)buffer, remaining = length, result = 0; remaining > 0; remaining -= result, ptr += result) {
-        timeout.tv_sec  = 30;
+        timeout.tv_sec  = 300; // Increased from 30 to 300 seconds (5 minutes) for better handling of large game libraries
         timeout.tv_usec = 0;
         FD_ZERO(&readFDs);
         FD_SET(s, &readFDs);
