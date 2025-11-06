@@ -12,8 +12,8 @@
 #endif
 
 #define IO_BUFFER_SIZE  IO_BANKSIZE
-#define RETRY_COUNT     3 // Maximum number of attempts to make, for failures to read/write to the server.
-#define RECONNECT_COUNT 5 /*  Maximum number of reconnection attempts to make, for every failed attempt to read/write. \
+#define RETRY_COUNT     10 // Increased from 3 to 10 - Maximum number of attempts to make, for failures to read/write to the server.
+#define RECONNECT_COUNT 10 /*  Increased from 5 to 10 - Maximum number of reconnection attempts to make, for every failed attempt to read/write. \
                               Note that the maximum number of connection attempts would be equal to RETRY_COUNT*RECONNECT_COUNT. */
 
 /* SCE disc types */
